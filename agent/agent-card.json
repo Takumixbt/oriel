@@ -1,0 +1,34 @@
+{
+  "name": "Oriel",
+  "version": "0.1.0",
+  "summary": "Private, version-bound qualification and conditional access for autonomous agents.",
+  "tags": ["agents", "security", "qualification", "conditional-access"],
+  "functions": [
+    {
+      "name": "run-qualification",
+      "summary": "Run a tenant-private adversarial test against a target agent and persist a scoped result.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["targetAgentDid", "targetVersionHash", "targetUrl", "testPackId"],
+        "properties": {
+          "targetAgentDid": { "type": "string" },
+          "targetVersionHash": { "type": "string" },
+          "targetUrl": { "type": "string", "format": "uri" },
+          "testPackId": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "get-qualification",
+      "summary": "Read the current qualification for one exact agent DID and version hash."
+    },
+    {
+      "name": "protected-support-action",
+      "summary": "Return a protected synthetic support record only to the qualified caller and version."
+    },
+    {
+      "name": "revoke-qualification",
+      "summary": "Tenant-owner revocation of a target agent qualification."
+    }
+  ]
+}
