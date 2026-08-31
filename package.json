@@ -1,0 +1,33 @@
+{
+  "name": "oriel",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Confidential qualification infrastructure for autonomous agents on T3N.",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test agent/test/*.test.ts",
+    "demo": "tsx agent/src/cli.ts demo",
+    "targets": "tsx targets/src/server.ts",
+    "contract:test": "cargo test --manifest-path contract/Cargo.toml",
+    "contract:build": "cargo build --manifest-path contract/Cargo.toml --target wasm32-wasip2 --release",
+    "contract:inspect": "wasm-tools component wit contract/target/wasm32-wasip2/release/oriel_contract.wasm",
+    "live:register": "tsx scripts/register.ts",
+    "live:grant": "tsx scripts/grant.ts",
+    "live:qualify": "tsx scripts/qualify.ts",
+    "live:protected": "tsx scripts/protected-call.ts",
+    "live:revoke": "tsx scripts/revoke.ts",
+    "check": "npm run typecheck && npm test && npm run contract:test && npm run contract:build"
+  },
+  "dependencies": {
+    "@terminal3/t3n-sdk": "4.36.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

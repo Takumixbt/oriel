@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Oriel architecture</title>
+  <desc id="desc">Three distinct identities use a T3N WASM contract to privately qualify an exact target agent version before protected data access.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#98a2b8"/>
+    </marker>
+    <linearGradient id="contract" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#18233b"/>
+      <stop offset="1" stop-color="#111a2d"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#020617" flood-opacity="0.38"/>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" fill="#070b14"/>
+  <circle cx="1450" cy="80" r="300" fill="#b8f36b" opacity="0.04"/>
+  <circle cx="120" cy="790" r="260" fill="#5ce1e6" opacity="0.035"/>
+
+  <text x="92" y="86" fill="#f5f7fb" font-family="Inter,Segoe UI,sans-serif" font-size="42" font-weight="600">Oriel</text>
+  <text x="92" y="126" fill="#98a2b8" font-family="Inter,Segoe UI,sans-serif" font-size="22">Private qualification becomes a live condition of enterprise access.</text>
+  <text x="1508" y="90" text-anchor="end" fill="#b8f36b" font-family="Inter,Segoe UI,sans-serif" font-size="18" letter-spacing="2">T3N-NATIVE</text>
+
+  <g font-family="Inter,Segoe UI,sans-serif">
+    <rect x="92" y="190" width="350" height="142" rx="18" fill="#101726" stroke="#29344a"/>
+    <text x="122" y="230" fill="#b8f36b" font-size="16" letter-spacing="1.5">01 / TENANT OWNER</text>
+    <text x="122" y="270" fill="#f5f7fb" font-size="24" font-weight="600">Deploy, grant, revoke</text>
+    <text x="122" y="303" fill="#98a2b8" font-size="17">Owns policy and private state</text>
+
+    <rect x="625" y="190" width="350" height="142" rx="18" fill="#101726" stroke="#29344a"/>
+    <text x="655" y="230" fill="#5ce1e6" font-size="16" letter-spacing="1.5">02 / ORIEL CERTIFIER</text>
+    <text x="655" y="270" fill="#f5f7fb" font-size="24" font-weight="600">Run qualification</text>
+    <text x="655" y="303" fill="#98a2b8" font-size="17">Cannot revoke or read protected data</text>
+
+    <rect x="1158" y="190" width="350" height="142" rx="18" fill="#101726" stroke="#29344a"/>
+    <text x="1188" y="230" fill="#ffbd66" font-size="16" letter-spacing="1.5">03 / TARGET AGENT</text>
+    <text x="1188" y="270" fill="#f5f7fb" font-size="24" font-weight="600">Pass, then call</text>
+    <text x="1188" y="303" fill="#98a2b8" font-size="17">Exact DID and version are bound</text>
+  </g>
+
+  <path d="M442 261 C520 261 540 410 625 440" fill="none" stroke="#98a2b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M800 332 L800 395" fill="none" stroke="#98a2b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M1158 261 C1080 261 1060 410 975 440" fill="none" stroke="#98a2b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="515" y="395" width="570" height="192" rx="28" fill="url(#contract)" stroke="#b8f36b" stroke-width="2" filter="url(#shadow)"/>
+  <text x="800" y="438" text-anchor="middle" fill="#b8f36b" font-family="Inter,Segoe UI,sans-serif" font-size="17" letter-spacing="2">TRUSTED ENFORCEMENT POINT</text>
+  <text x="800" y="486" text-anchor="middle" fill="#f5f7fb" font-family="Inter,Segoe UI,sans-serif" font-size="31" font-weight="600">Oriel WASM contract</text>
+  <text x="800" y="524" text-anchor="middle" fill="#98a2b8" font-family="Inter,Segoe UI,sans-serif" font-size="18">private probe → deterministic verdict → conditional access</text>
+  <g font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="15" fill="#cbd3e1">
+    <text x="566" y="558">run-qualification</text>
+    <text x="750" y="558">get-qualification</text>
+    <text x="930" y="558">protected-action</text>
+  </g>
+
+  <path d="M800 587 L800 642" fill="none" stroke="#98a2b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="824" y="623" fill="#98a2b8" font-family="Inter,Segoe UI,sans-serif" font-size="15">contract-only ACL</text>
+
+  <g font-family="Inter,Segoe UI,sans-serif">
+    <rect x="92" y="658" width="330" height="134" rx="18" fill="#0d1422" stroke="#29344a"/>
+    <text x="120" y="699" fill="#f5f7fb" font-size="21" font-weight="600">Private seed</text>
+    <text x="120" y="733" fill="#98a2b8" font-size="16">Fresh canary per run</text>
+    <text x="120" y="762" fill="#68758e" font-family="ui-monospace,monospace" font-size="14">oriel-secrets</text>
+
+    <rect x="454" y="658" width="330" height="134" rx="18" fill="#0d1422" stroke="#29344a"/>
+    <text x="482" y="699" fill="#f5f7fb" font-size="21" font-weight="600">Versioned policy</text>
+    <text x="482" y="733" fill="#98a2b8" font-size="16">Functions, hosts, TTL</text>
+    <text x="482" y="762" fill="#68758e" font-family="ui-monospace,monospace" font-size="14">oriel-policies</text>
+
+    <rect x="816" y="658" width="330" height="134" rx="18" fill="#0d1422" stroke="#29344a"/>
+    <text x="844" y="699" fill="#f5f7fb" font-size="21" font-weight="600">Qualification ledger</text>
+    <text x="844" y="733" fill="#98a2b8" font-size="16">DID + version + scope</text>
+    <text x="844" y="762" fill="#68758e" font-family="ui-monospace,monospace" font-size="14">oriel-qualifications</text>
+
+    <rect x="1178" y="658" width="330" height="134" rx="18" fill="#0d1422" stroke="#29344a"/>
+    <text x="1206" y="699" fill="#f5f7fb" font-size="21" font-weight="600">Protected records</text>
+    <text x="1206" y="733" fill="#98a2b8" font-size="16">Read only after admission</text>
+    <text x="1206" y="762" fill="#68758e" font-family="ui-monospace,monospace" font-size="14">oriel-protected-data</text>
+  </g>
+
+  <text x="92" y="850" fill="#68758e" font-family="Inter,Segoe UI,sans-serif" font-size="16">Guarantee boundary: one identity • one build • one tested scope • one finite interval</text>
+</svg>
