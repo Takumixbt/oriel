@@ -78,7 +78,7 @@ The TypeScript integration suite and Rust policy suite independently test the sa
 
 ## Live T3N path
 
-The offline build is fully verified. Live registration requires three T3N keys and a public HTTPS URL for the target fixture.
+The offline build is fully verified. The current testnet deployment is registered as `oriel@0.1.2` (contract ID `824`). A complete live lifecycle additionally needs funded certifier/target identities and a public HTTPS URL for the target fixture.
 
 ```powershell
 Copy-Item .env.example .env
@@ -103,11 +103,11 @@ Oriel was built for the [T3N Agent Build Challenge](https://superteam.fun/earn/l
 
 ## Current status
 
-- Rust contract: **9 unit tests + 1 doc test passing**
+- Rust contract: **10 unit tests + 1 doc test passing**
 - TypeScript: **strict typecheck passing**
 - End-to-end HTTP lifecycle: **5 tests passing**
 - WASI component: **build and WIT inspection passing**
-- Live T3N execution: **pending credentials and public HTTPS target**
+- Live T3N registration/grants: **verified on testnet**; qualification/access evidence needs funded agent keys and a public HTTPS target
 
 Oriel demonstrates a strong admission primitive; it does not claim to prove an arbitrary agent safe under every prompt or future environment. The tested policy, build hash, time window, and capability scope are explicit parts of the result.
 

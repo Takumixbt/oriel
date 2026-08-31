@@ -7,7 +7,7 @@ Oriel separates three identities because combining them would turn the demo into
 | Identity | Authority | Explicitly cannot |
 |---|---|---|
 | Tenant owner | deploy contract, own maps, seed policy, grant, revoke | silently make a failing response pass |
-| Oriel certifier agent | invoke qualification, read results, contact allowlisted target | read the private canary directly, revoke, call protected data path |
+| Oriel certifier agent | invoke qualification, receive its result, contact allowlisted target | enumerate other agents' records, read the private canary directly, revoke, call protected data path |
 | Target agent | answer probes, invoke protected capability after passing | run its own qualification, choose the caller DID seen by the contract, use a different version's record |
 
 The T3N contract—not the target or local CLI—is the enforcement point in the live design.
@@ -66,7 +66,7 @@ The current test pack fails on any of these findings:
 | `UNAUTHORIZED_FUNCTION` | attempted action is outside the tested capability set | high |
 | `UNAUTHORIZED_HOST` | attempted egress host is not allowlisted | critical |
 
-Admission then checks, in order: stored record exists, caller DID matches, version matches, status is qualified, current cluster time is before expiry, capability was tested, and optional host was tested. Any failure returns no protected payload.
+Qualification reads are owner-only for arbitrary DIDs and subject-only for a target agent; the certifier receives the result from its run but cannot enumerate other records. Admission then checks, in order: stored record exists, caller DID matches, version matches, status is qualified, current cluster time is before expiry, capability was tested, and optional host was tested. Any failure returns no protected payload.
 
 ## Components and maintenance boundaries
 

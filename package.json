@@ -1,6 +1,6 @@
 {
   "name": "oriel",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "description": "Confidential qualification infrastructure for autonomous agents on T3N.",

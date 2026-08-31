@@ -6,3 +6,5 @@ services:
     envVars:
       - key: ORIEL_TARGET_BIND
         value: 0.0.0.0
+      - key: ORIEL_ENABLE_VULNERABLE_FIXTURE
+        value: "false"

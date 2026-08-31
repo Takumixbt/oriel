@@ -1,9 +1,9 @@
 import { createHash, randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { connect, requiredEnv, safeError, scriptName } from "./t3n.js";
+import { connect, requiredEnv, safeError, scriptName, validateAgentCard } from "./t3n.js";
 
-const CONTRACT_VERSION = "0.1.0";
+const CONTRACT_VERSION = "0.1.2";
 const CONTRACT_TAIL = "oriel";
 const MAPS = [
   "oriel-secrets",
@@ -13,13 +13,18 @@ const MAPS = [
 ] as const;
 
 async function main(): Promise<void> {
-  const owner = await connect(requiredEnv("T3N_API_KEY"));
-  await owner.tenant.tenant.me();
-
   const wasmPath = fileURLToPath(
     new URL("../contract/target/wasm32-wasip2/release/oriel_contract.wasm", import.meta.url),
   );
   const wasm = await readFile(wasmPath);
+
+  const descriptorPath = fileURLToPath(new URL("../agent/agent-card.json", import.meta.url));
+  const descriptor: unknown = JSON.parse(await readFile(descriptorPath, "utf8"));
+  validateAgentCard(descriptor);
+
+  const owner = await connect(requiredEnv("T3N_API_KEY"));
+  await owner.tenant.tenant.me();
+
   const registered = await owner.tenant.contracts.register({
     tail: CONTRACT_TAIL,
     version: CONTRACT_VERSION,
@@ -27,8 +32,6 @@ async function main(): Promise<void> {
   });
   const contractId = registered.contract_id;
 
-  const descriptorPath = fileURLToPath(new URL("../agent/agent-card.json", import.meta.url));
-  const descriptor: unknown = JSON.parse(await readFile(descriptorPath, "utf8"));
   await owner.tenant.contracts.setDescriptor({
     tail: CONTRACT_TAIL,
     version: CONTRACT_VERSION,

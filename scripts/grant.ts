@@ -19,7 +19,7 @@ async function main(): Promise<void> {
   await owner.t3n.updateAgentAuth(certifier.did, {
     scriptName: name,
     versionReq: version,
-    functions: ["run-qualification", "get-qualification"],
+    functions: ["run-qualification"],
     allowedHosts: [targetUrl.hostname],
   });
   await owner.t3n.updateAgentAuth(target.did, {

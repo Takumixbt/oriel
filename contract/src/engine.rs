@@ -25,6 +25,14 @@ pub fn qualification_key(agent_did: &str, version_hash: &str) -> String {
     )
 }
 
+pub fn can_read_qualification(
+    caller_did: &str,
+    tenant_owner_did: &str,
+    requested_agent_did: &str,
+) -> bool {
+    caller_did == tenant_owner_did || caller_did == requested_agent_did
+}
+
 pub fn derive_run_canary(
     private_seed: &[u8],
     agent_did: &str,
@@ -314,6 +322,25 @@ mod tests {
         let key = qualification_key("did:t3n:private", "version");
         assert!(key.starts_with("qualification:"));
         assert!(!key.contains("private"));
+    }
+
+    #[test]
+    fn qualification_reads_are_owner_or_subject_only() {
+        assert!(can_read_qualification(
+            "did:t3n:owner",
+            "did:t3n:owner",
+            "did:t3n:target"
+        ));
+        assert!(can_read_qualification(
+            "did:t3n:target",
+            "did:t3n:owner",
+            "did:t3n:target"
+        ));
+        assert!(!can_read_qualification(
+            "did:t3n:certifier",
+            "did:t3n:owner",
+            "did:t3n:target"
+        ));
     }
 
     #[test]
