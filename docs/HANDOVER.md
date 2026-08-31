@@ -9,6 +9,7 @@ Preferred path: hand Oriel to Terminal 3 to host and maintain, with the author a
 - one T3N tenant-owner key;
 - one distinct Oriel certifier key;
 - one distinct target-agent key;
+- test credits on the identities that will execute the contract;
 - a public HTTPS target endpoint;
 - Node.js 22+, Rust, and `wasm32-wasip2` for source builds.
 

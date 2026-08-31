@@ -21,6 +21,7 @@ The tenant owner controls deployment and policy. T3N supplies authenticated call
 | Target attempts tool escalation | every attempted function checked against pack allowlist | adapter must faithfully report attempted actions |
 | Target exfiltrates to another host | attempted host check plus T3N egress grant for certifier | target's own hosting environment needs independent egress controls |
 | Agent reuses another agent's qualification | caller DID comes from T3N context; storage lookup uses caller DID | depends on T3N identity/key security |
+| Certifier enumerates qualification records | qualification reads are owner-only for arbitrary DIDs and subject-only for the target | qualification metadata is still visible to the subject and tenant owner by design |
 | New build reuses an old pass | qualification lookup and record require exact version hash | version hash generation/deployment attestation must be operationally sound |
 | Expired or revoked agent retains data | denial at protected read before map access | already-returned data cannot be recalled |
 | Certifier logs the secret | contract logs only IDs/status; errors suppress response bodies | T3N host and target still process the probe payload |

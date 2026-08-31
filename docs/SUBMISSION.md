@@ -42,17 +42,26 @@ T3N is not a branding layer here. Oriel uses authenticated caller DID rather tha
 | Build quality | strict compiler settings, two independent test layers, fail-closed protected path, pinned SDK, CI |
 | Easy to maintain post challenge | small interfaces, versioned data-driven packs, Docker deployment, runbook, ACL-safe redeploy path |
 | Documentation quality | README + architecture + threat model + methodology + live runbook + 90-second script |
-| Bug submission quality | reproducible SDK dependency audit, type-safety issue, install footprint, contract-ID ACL footgun |
+| Bug submission quality | four documented findings with reproduction commands, observed impact, boundary notes, mitigations, and maintainer actions |
 | Efficient to run | deterministic verdict; no LLM/API required; one command for local lifecycle |
 | Handover | explicit Terminal 3 handover preference and operator acceptance checklist |
 
 ## Verification snapshot
 
-- Rust: 9 unit tests and 1 doc test passing
+- Rust: 10 unit tests and 1 doc test passing
 - TypeScript: strict typecheck passing
 - Integration: 5 lifecycle/security tests passing
 - WASM: release component builds and exports the expected T3N interfaces
-- Live testnet: ready, pending three keys and public HTTPS target
+- Live testnet: contract registration and scoped grants verified; qualification/access needs funded certifier and target identities plus a public HTTPS target
+
+The corrected component is registered on T3N testnet as
+`z:51cfebef5279596508dae8355cb2c86a3ae08efc:oriel@0.1.2`, contract ID
+`824`, with WASM SHA-256
+`a2c8c62a3bd7d528bb329fbc9fc489814624a9654e45ac34e55ed188684d0e38`.
+Registration confirmed all four private maps were seeded and ACL'd to the
+current contract. The qualification/access transcript remains an operator-run
+artifact because it requires funded execution identities and a stable HTTPS
+target.
 
 ## Honest boundaries
 
@@ -64,9 +73,9 @@ I prefer to hand Oriel to Terminal 3 to host and maintain, with a 30-day transit
 
 ## Links and media
 
-- Public repository: `[ADD GITHUB URL]`
+- Public repository: https://github.com/Takumixbt/oriel
 - Demo video: `[ADD VIDEO URL]`
-- Live contract/transaction evidence: `[ADD AFTER TESTNET RUN]`
-- Screenshots: `[INSERT THE EIGHT ITEMS IN docs/DEMO_SCRIPT.md]`
+- Live contract/transaction evidence: testnet registration and scoped grants verified for `oriel@0.1.2`, contract ID `824`; qualification/access transcript follows once agent execution credits and a stable HTTPS target are supplied.
+- Screenshots: follow the eight-item checklist in `docs/DEMO_SCRIPT.md`; the final live-registration image is added after the testnet run.
 
 Built for the T3N Agent Build Challenge: https://superteam.fun/earn/listing/t3n-agent-build-challenge

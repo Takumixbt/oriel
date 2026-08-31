@@ -29,7 +29,11 @@ function json(response: ServerResponse, status: number, body: unknown): void {
   response.end(JSON.stringify(body));
 }
 
-export async function startTargetServer(port = 0, host = "127.0.0.1"): Promise<{
+export async function startTargetServer(
+  port = 0,
+  host = "127.0.0.1",
+  enableVulnerableFixture = true,
+): Promise<{
   baseUrl: string;
   close: () => Promise<void>;
 }> {
@@ -40,7 +44,10 @@ export async function startTargetServer(port = 0, host = "127.0.0.1"): Promise<{
       }
       if (request.method !== "POST") return json(response, 405, { error: "method_not_allowed" });
       const probe = await readJson(request);
-      if (request.url === "/vulnerable/v1/run") return json(response, 200, vulnerableBehavior(probe));
+      if (request.url === "/vulnerable/v1/run") {
+        if (!enableVulnerableFixture) return json(response, 404, { error: "not_found" });
+        return json(response, 200, vulnerableBehavior(probe));
+      }
       if (request.url === "/hardened/v2/run") return json(response, 200, hardenedBehavior(probe));
       return json(response, 404, { error: "not_found" });
     } catch {
@@ -63,9 +70,10 @@ export async function startTargetServer(port = 0, host = "127.0.0.1"): Promise<{
 async function main(): Promise<void> {
   const port = Number(process.env.ORIEL_TARGET_PORT ?? process.env.PORT ?? "8787");
   const host = process.env.ORIEL_TARGET_BIND ?? "127.0.0.1";
-  const target = await startTargetServer(port, host);
+  const enableVulnerableFixture = process.env.ORIEL_ENABLE_VULNERABLE_FIXTURE === "true";
+  const target = await startTargetServer(port, host, enableVulnerableFixture);
   console.log(`Oriel target fixture listening at ${target.baseUrl}`);
-  console.log(`vulnerable=${VULNERABLE_VERSION} hardened=${HARDENED_VERSION}`);
+  console.log(`vulnerableFixture=${enableVulnerableFixture} vulnerable=${VULNERABLE_VERSION} hardened=${HARDENED_VERSION}`);
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {

@@ -28,6 +28,47 @@ export function requiredEnv(name: string): string {
   return value;
 }
 
+export function validateAgentCard(card: unknown): void {
+  if (!card || typeof card !== "object") throw new Error("agent card must be a JSON object");
+  const functions = (card as { functions?: unknown }).functions;
+  if (!Array.isArray(functions) || functions.length === 0) {
+    throw new Error("agent card must declare at least one function");
+  }
+  for (const entry of functions) {
+    if (!entry || typeof entry !== "object") throw new Error("agent card function must be an object");
+    const functionEntry = entry as {
+      name?: unknown;
+      auth?: unknown;
+      mutates?: unknown;
+      params_schema?: unknown;
+      returns?: unknown;
+      errors?: unknown;
+      examples?: unknown;
+    };
+    if (typeof functionEntry.name !== "string" || functionEntry.name.length === 0) {
+      throw new Error("agent card function name is required");
+    }
+    if (!functionEntry.auth || typeof functionEntry.auth !== "object" || Array.isArray(functionEntry.auth)) {
+      throw new Error(`agent card function ${functionEntry.name} must declare auth object`);
+    }
+    if (typeof functionEntry.mutates !== "boolean") {
+      throw new Error(`agent card function ${functionEntry.name} must declare boolean mutates`);
+    }
+    if (!functionEntry.params_schema || typeof functionEntry.params_schema !== "object" || Array.isArray(functionEntry.params_schema)) {
+      throw new Error(`agent card function ${functionEntry.name} must declare params_schema object`);
+    }
+    if (!functionEntry.returns || typeof functionEntry.returns !== "object" || Array.isArray(functionEntry.returns)) {
+      throw new Error(`agent card function ${functionEntry.name} must declare returns object`);
+    }
+    if (!Array.isArray(functionEntry.errors)) {
+      throw new Error(`agent card function ${functionEntry.name} must declare errors array`);
+    }
+    if (!Array.isArray(functionEntry.examples)) {
+      throw new Error(`agent card function ${functionEntry.name} must declare examples array`);
+    }
+  }
+}
+
 export function environment(): OrielEnvironment {
   const value = process.env.T3N_ENV?.trim() ?? "testnet";
   if (value !== "sandbox" && value !== "testnet" && value !== "production") {
@@ -42,7 +83,7 @@ export async function connect(privateKey: string): Promise<T3nConnection> {
   const address = eth_get_address(privateKey);
   const [wasmComponent, trustAnchor] = await Promise.all([
     loadWasmComponent(),
-    fetchTrustedManifest(env),
+    fetchTrustedManifestWithRetry(env),
   ]);
   const t3n = new T3nClient({
     wasmComponent,
@@ -53,6 +94,21 @@ export async function connect(privateKey: string): Promise<T3nConnection> {
   const did = (await t3n.authenticate(createEthAuthInput(address))).value;
   const tenant = new TenantClient({ t3n, baseUrl: getNodeUrl(), tenantDid: did });
   return { did, t3n, tenant };
+}
+
+async function fetchTrustedManifestWithRetry(env: OrielEnvironment): Promise<Awaited<ReturnType<typeof fetchTrustedManifest>>> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await fetchTrustedManifest(env);
+    } catch (error) {
+      lastError = error;
+      if (attempt < 2) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+      }
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 
 export function scriptName(tenantDid: string): string {

@@ -1,6 +1,6 @@
 [package]
 name = "oriel-contract"
-version = "0.1.0"
+version = "0.1.2"
 edition = "2021"
 description = "T3N TEE contract for private agent qualification and capability-gated data access."
 license = "MIT"

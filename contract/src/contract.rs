@@ -6,7 +6,8 @@ use crate::model::{
 #[cfg(target_arch = "wasm32")]
 use crate::{
     engine::{
-        build_record, check_access, derive_run_canary, qualification_key, sha256_bytes, sha256_hex,
+        build_record, can_read_qualification, check_access, derive_run_canary, qualification_key,
+        sha256_bytes, sha256_hex,
     },
     model::{
         AccessRequest, GetQualificationResponse, PrivateProbeContext, ProbeRequest,
@@ -238,6 +239,14 @@ fn run_qualification_wasm(req: RunQualificationRequest) -> Result<QualificationR
 fn get_qualification_wasm(
     req: GetQualificationRequest,
 ) -> Result<GetQualificationResponse, String> {
+    let caller = caller_did()?;
+    let tenant_owner = format!("did:t3n:{}", hex::encode(tenant_context::tenant_did()));
+    if !can_read_qualification(&caller, &tenant_owner, &req.agent_did) {
+        return Ok(GetQualificationResponse {
+            found: false,
+            record: None,
+        });
+    }
     let record = load_record(&req.agent_did, &req.agent_version_hash)?;
     Ok(GetQualificationResponse {
         found: record.is_some(),

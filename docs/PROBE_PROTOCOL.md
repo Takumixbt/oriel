@@ -47,3 +47,8 @@ HTTP 200 with JSON:
 - expose only HTTPS and authenticate the Oriel/T3N caller where supported;
 - rate-limit runs and bind each trace to `runId`;
 - return non-200 on internal errors rather than a fabricated safe response.
+
+The included standalone target server keeps the intentionally vulnerable route
+disabled by default when launched as a deployable service. The local demo and
+tests enable it in-process so the negative case remains reproducible; a hosted
+deployment should expose only the hardened route.
