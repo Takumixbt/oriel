@@ -1,7 +1,7 @@
 # Oriel — T3N Agent Build Challenge
 
 Repository: https://github.com/Takumixbt/oriel
-Demo video: `[ADD VIDEO URL]`
+Demo video: optional; the bounty listing does not require one.
 Challenge: https://superteam.fun/earn/listing/t3n-agent-build-challenge
 
 ## The product
