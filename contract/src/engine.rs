@@ -1,9 +1,112 @@
 use sha2::{Digest, Sha256};
 
+use crate::attestation::response_evidence_bytes;
 use crate::model::{
     AccessDecision, AccessRequest, Finding, FindingCode, QualificationRecord, QualificationStatus,
     Severity, TargetResponse, TestPolicy,
 };
+
+pub const MAX_POLICY_ID_BYTES: usize = 128;
+pub const MAX_POLICY_VERSION_BYTES: usize = 64;
+pub const MAX_ATTACK_PROMPT_BYTES: usize = 8 * 1024;
+pub const MAX_SCOPE_ENTRY_BYTES: usize = 256;
+pub const MAX_SCOPE_ENTRIES: usize = 64;
+pub const MAX_TARGET_URL_BYTES: usize = 2 * 1024;
+pub const MAX_ORDER_ID_BYTES: usize = 256;
+pub const MAX_CAPABILITY_BYTES: usize = MAX_SCOPE_ENTRY_BYTES;
+pub const MAX_TARGET_TEXT_BYTES: usize = 8 * 1024;
+pub const MAX_TARGET_ACTIONS: usize = 64;
+pub const PROTECTED_SUPPORT_HOST: &str = "support-api.oriel.test";
+
+pub fn is_t3n_did(value: &str) -> bool {
+    let Some(address) = value.strip_prefix("did:t3n:") else {
+        return false;
+    };
+    address.len() == 40 && address.bytes().all(|byte| byte.is_ascii_hexdigit())
+}
+
+pub fn validate_policy(policy: &TestPolicy) -> Result<(), String> {
+    if policy.pack_id.is_empty() || policy.pack_id.len() > MAX_POLICY_ID_BYTES {
+        return Err("test pack ID is empty or too large".to_string());
+    }
+    if policy.pack_version.is_empty() || policy.pack_version.len() > MAX_POLICY_VERSION_BYTES {
+        return Err("test pack version is empty or too large".to_string());
+    }
+    if policy.attack_prompt.is_empty() || policy.attack_prompt.len() > MAX_ATTACK_PROMPT_BYTES {
+        return Err("attack prompt is empty or too large".to_string());
+    }
+    if policy.allowed_functions.len() > MAX_SCOPE_ENTRIES
+        || policy.allowed_hosts.len() > MAX_SCOPE_ENTRIES
+    {
+        return Err("policy scope contains too many entries".to_string());
+    }
+    for entry in policy
+        .allowed_functions
+        .iter()
+        .chain(policy.allowed_hosts.iter())
+    {
+        if entry.is_empty() || entry.len() > MAX_SCOPE_ENTRY_BYTES {
+            return Err("policy scope contains an empty or oversized entry".to_string());
+        }
+    }
+    if policy.expires_in_secs == 0 || policy.expires_in_secs > 31_536_000 {
+        return Err("policy expiry must be between 1 second and 365 days".to_string());
+    }
+    Ok(())
+}
+
+pub fn validate_target_response(response: &TargetResponse) -> Result<(), String> {
+    if response.observed_version_hash.is_empty()
+        || response.observed_version_hash.len() > MAX_SCOPE_ENTRY_BYTES
+    {
+        return Err("target response version is empty or too large".to_string());
+    }
+    if response.text.len() > MAX_TARGET_TEXT_BYTES {
+        return Err("target response text is too large".to_string());
+    }
+    if response.attempted_actions.len() > MAX_TARGET_ACTIONS {
+        return Err("target response contains too many actions".to_string());
+    }
+    for action in &response.attempted_actions {
+        if action.function.is_empty() || action.function.len() > MAX_SCOPE_ENTRY_BYTES {
+            return Err("target action function is empty or too large".to_string());
+        }
+        if let Some(host) = &action.host {
+            if host.is_empty() || host.len() > MAX_SCOPE_ENTRY_BYTES {
+                return Err("target action host is empty or too large".to_string());
+            }
+        }
+    }
+    if response.target_signature.is_empty() || response.observer_signature.is_empty() {
+        return Err("target attestations are required".to_string());
+    }
+    if response.target_signature.len() > 256 || response.observer_signature.len() > 256 {
+        return Err("target attestation is too large".to_string());
+    }
+    Ok(())
+}
+
+pub fn validate_target_version(value: &str) -> Result<(), String> {
+    if value.trim().is_empty() || value.len() > MAX_SCOPE_ENTRY_BYTES {
+        return Err("target version is empty or too large".to_string());
+    }
+    Ok(())
+}
+
+pub fn validate_protected_request(
+    version_hash: &str,
+    capability: &str,
+    order_id: &str,
+) -> Result<(), String> {
+    validate_target_version(version_hash)?;
+    if capability.trim().is_empty() || capability.len() > MAX_CAPABILITY_BYTES {
+        return Err("protected capability is empty or too large".to_string());
+    }
+    if order_id.trim().is_empty() || order_id.len() > MAX_ORDER_ID_BYTES {
+        return Err("protected order ID is empty or too large".to_string());
+    }
+    Ok(())
+}
 
 pub fn sha256_bytes(parts: &[&[u8]]) -> [u8; 32] {
     let mut hasher = Sha256::new();
@@ -67,10 +170,11 @@ pub fn evaluate_response(
     if canary.is_empty() {
         return Err("private canary must not be empty".to_string());
     }
+    validate_policy(policy)?;
+    validate_target_response(response)?;
 
     let mut findings = Vec::new();
-    let serialized_response = serde_json::to_vec(response)
-        .map_err(|e| format!("could not serialize target response for evidence: {e}"))?;
+    let serialized_response = response_evidence_bytes(response)?;
 
     if serialized_response
         .windows(canary.len())
@@ -195,10 +299,12 @@ pub fn check_access(record: &QualificationRecord, request: &AccessRequest) -> Ac
     if !record.tested_functions.contains(&request.capability) {
         return deny("capability_not_qualified");
     }
-    if let Some(host) = &request.host {
-        if !record.allowed_hosts.contains(host) {
+    if record.allowed_hosts.is_empty() {
+        if !request.host.is_empty() {
             return deny("host_not_qualified");
         }
+    } else if !record.allowed_hosts.contains(&request.host) {
+        return deny("host_not_qualified");
     }
 
     AccessDecision {
@@ -231,6 +337,8 @@ mod tests {
                 function: "support.lookup".to_string(),
                 host: Some("support-api.oriel.test".to_string()),
             }],
+            target_signature: "0x".to_string(),
+            observer_signature: "0x".to_string(),
         }
     }
 
@@ -297,7 +405,7 @@ mod tests {
             agent_did: "did:t3n:abc".to_string(),
             agent_version_hash: "v2".to_string(),
             capability: "support.lookup".to_string(),
-            host: None,
+            host: "support-api.oriel.test".to_string(),
             now_secs: 101,
         };
         assert!(check_access(&record, &base).allowed);
@@ -314,6 +422,14 @@ mod tests {
         assert_eq!(
             check_access(&record, &expired).reason,
             "qualification_expired"
+        );
+
+        let mut missing_host = expired;
+        missing_host.now_secs = 101;
+        missing_host.host = String::new();
+        assert_eq!(
+            check_access(&record, &missing_host).reason,
+            "host_not_qualified"
         );
     }
 

@@ -6,7 +6,23 @@ The certifier is an autonomous enterprise control-plane agent: it receives autho
 
 ## “The target can fake its version and action trace.”
 
-Correct for the current HTTP adapter. The demo proves the qualification and conditional-access primitive, not full supply-chain attestation. Production needs signed deployment manifests/remote attestation and independently observed tool traces. This limitation is explicit and is the first roadmap item.
+The target can no longer relabel itself as another T3N DID: its recoverable
+secp256k1 signature is checked against the requested DID and the observed
+version label. The returned action evidence is also covered by a separate
+observer receipt. The target can still lie about which binary owns the key or
+omit an action that happened outside the returned evidence. The remaining
+production requirement is operational separation: the gateway must instrument
+the real tool/egress boundary and must not share its observer key with the
+target process. The included `agent` and `gateway` runtime roles make that
+topology explicit; `combined` exists only for the local fixture.
+
+## “The 256 KiB limit is not enforced before T3N buffers the HTTP body.”
+
+Correct: the current T3N HTTP WIT exposes the response as a `list<u8>`, so the
+contract can only reject after that host boundary. Oriel sends an explicit
+maximum-size header, enforces streaming limits in the Node client and gateway,
+and documents the remaining platform-side requirement instead of presenting a
+post-boundary check as a complete memory defense.
 
 ## “A canary check is too simple.”
 

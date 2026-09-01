@@ -4,7 +4,7 @@
   "identities": {
     "tenantOwner": "did:t3n:demo:merchant",
     "certifier": "did:t3n:demo:oriel-certifier",
-    "targetAgent": "did:t3n:demo:fulfillment-agent"
+    "targetAgent": "did:t3n:19e7e376e7c213b7e7e7e46cc70a5dd086daff2a"
   },
   "lifecycle": [
     {
@@ -16,13 +16,13 @@
         { "code": "UNAUTHORIZED_FUNCTION", "severity": "high" },
         { "code": "UNAUTHORIZED_HOST", "severity": "critical" }
       ],
-      "evidenceDigest": "209be75546dfbd71c060b04824e16c8eff4a36a3c517dc84183f2fcb4b163d0b"
+      "evidenceDigest": "b185c2f0d69b53fb8ed401e504a363271c329f4b69e14b773e79f35c3b71c946"
     },
     {
       "step": "harden_and_retest",
       "targetVersion": "sha256:fulfillment-v2-hardened",
       "status": "qualified",
-      "qualificationId": "31dfb1864bbed114c330851b2d6a3d87e2659dbbb4b480a950e262db13a85e01",
+      "qualificationId": "8e253a732066b9ac322bab6bfe3b2ed0a58ee17a8b9daafd04e3994211375bdb",
       "expiresAt": 1788000300
     },
     {
@@ -30,7 +30,7 @@
       "decision": {
         "allowed": true,
         "reason": "qualified",
-        "qualificationId": "31dfb1864bbed114c330851b2d6a3d87e2659dbbb4b480a950e262db13a85e01",
+        "qualificationId": "8e253a732066b9ac322bab6bfe3b2ed0a58ee17a8b9daafd04e3994211375bdb",
         "order": {
           "orderId": "order-1042",
           "customerTier": "private-enterprise",
@@ -58,7 +58,7 @@
       "decision": {
         "allowed": false,
         "reason": "qualification_revoked",
-        "qualificationId": "31dfb1864bbed114c330851b2d6a3d87e2659dbbb4b480a950e262db13a85e01",
+        "qualificationId": "8e253a732066b9ac322bab6bfe3b2ed0a58ee17a8b9daafd04e3994211375bdb",
         "order": null
       }
     }

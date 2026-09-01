@@ -8,3 +8,11 @@ services:
         value: 0.0.0.0
       - key: ORIEL_ENABLE_VULNERABLE_FIXTURE
         value: "false"
+      - key: ORIEL_TARGET_ROLE
+        value: gateway
+      - key: ORIEL_UPSTREAM_TARGET_URL
+        sync: false
+      - key: ORIEL_TARGET_DID
+        sync: false
+      - key: ORIEL_OBSERVER_ATTESTATION_KEY
+        sync: false

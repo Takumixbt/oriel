@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
   <title id="title">Oriel architecture</title>
-  <desc id="desc">Three distinct identities use a T3N WASM contract to privately qualify an exact target agent version before protected data access.</desc>
+  <desc id="desc">Three distinct identities use a T3N WASM contract to privately qualify a target agent version label before protected data access.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#98a2b8"/>
@@ -35,7 +35,7 @@
     <rect x="1158" y="190" width="350" height="142" rx="18" fill="#101726" stroke="#29344a"/>
     <text x="1188" y="230" fill="#ffbd66" font-size="16" letter-spacing="1.5">03 / TARGET AGENT</text>
     <text x="1188" y="270" fill="#f5f7fb" font-size="24" font-weight="600">Pass, then call</text>
-    <text x="1188" y="303" fill="#98a2b8" font-size="17">Exact DID and version are bound</text>
+    <text x="1188" y="303" fill="#98a2b8" font-size="17">DID and version label are bound</text>
   </g>
 
   <path d="M442 261 C520 261 540 410 625 440" fill="none" stroke="#98a2b8" stroke-width="2" marker-end="url(#arrow)"/>

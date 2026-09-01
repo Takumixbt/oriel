@@ -34,6 +34,7 @@ export function validateAgentCard(card: unknown): void {
   if (!Array.isArray(functions) || functions.length === 0) {
     throw new Error("agent card must declare at least one function");
   }
+  const names = new Set<string>();
   for (const entry of functions) {
     if (!entry || typeof entry !== "object") throw new Error("agent card function must be an object");
     const functionEntry = entry as {
@@ -48,6 +49,8 @@ export function validateAgentCard(card: unknown): void {
     if (typeof functionEntry.name !== "string" || functionEntry.name.length === 0) {
       throw new Error("agent card function name is required");
     }
+    if (names.has(functionEntry.name)) throw new Error(`agent card function ${functionEntry.name} is duplicated`);
+    names.add(functionEntry.name);
     if (!functionEntry.auth || typeof functionEntry.auth !== "object" || Array.isArray(functionEntry.auth)) {
       throw new Error(`agent card function ${functionEntry.name} must declare auth object`);
     }
@@ -56,6 +59,13 @@ export function validateAgentCard(card: unknown): void {
     }
     if (!functionEntry.params_schema || typeof functionEntry.params_schema !== "object" || Array.isArray(functionEntry.params_schema)) {
       throw new Error(`agent card function ${functionEntry.name} must declare params_schema object`);
+    }
+    const paramsSchema = functionEntry.params_schema as { properties?: unknown; required?: unknown };
+    if (!paramsSchema.properties || typeof paramsSchema.properties !== "object" || Array.isArray(paramsSchema.properties)) {
+      throw new Error(`agent card function ${functionEntry.name} params_schema must declare properties`);
+    }
+    if (!Array.isArray(paramsSchema.required)) {
+      throw new Error(`agent card function ${functionEntry.name} params_schema must declare required fields`);
     }
     if (!functionEntry.returns || typeof functionEntry.returns !== "object" || Array.isArray(functionEntry.returns)) {
       throw new Error(`agent card function ${functionEntry.name} must declare returns object`);
@@ -135,7 +145,13 @@ export async function executeOriel<T>(
 
 export function safeError(error: unknown): string {
   let message = error instanceof Error ? error.message : String(error);
-  for (const name of ["T3N_API_KEY", "ORIEL_AGENT_KEY", "TARGET_AGENT_KEY"] as const) {
+  for (const name of [
+    "T3N_API_KEY",
+    "ORIEL_AGENT_KEY",
+    "TARGET_AGENT_KEY",
+    "ORIEL_TARGET_ATTESTATION_KEY",
+    "ORIEL_OBSERVER_ATTESTATION_KEY",
+  ] as const) {
     const secret = process.env[name];
     if (secret) message = message.replaceAll(secret, "[redacted]");
   }

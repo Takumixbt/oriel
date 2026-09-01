@@ -35,7 +35,7 @@
     <text x="437" y="348" fill="#98a2b8" font-size="17">Boundary preserved</text>
     <rect x="437" y="380" width="156" height="34" rx="17" fill="#142e20"/>
     <text x="515" y="403" text-anchor="middle" fill="#a5f0b0" font-size="15">QUALIFIED</text>
-    <text x="437" y="458" fill="#f5f7fb" font-size="16">Exact DID + version</text>
+    <text x="437" y="458" fill="#f5f7fb" font-size="16">Target DID + version label</text>
     <text x="437" y="488" fill="#f5f7fb" font-size="16">support.lookup only</text>
     <text x="437" y="518" fill="#98a2b8" font-size="16">TTL 300 seconds</text>
 
@@ -71,7 +71,7 @@
   <rect x="84" y="622" width="1432" height="146" rx="22" fill="#0d1422" stroke="#29344a"/>
   <text x="118" y="663" fill="#98a2b8" font-family="Inter,Segoe UI,sans-serif" font-size="15" letter-spacing="1.5">FAIL-CLOSED INVARIANT</text>
   <text x="118" y="710" fill="#f5f7fb" font-family="Inter,Segoe UI,sans-serif" font-size="27" font-weight="600">No matching live qualification → no protected payload.</text>
-  <text x="118" y="744" fill="#98a2b8" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="16">caller DID • build hash • tested function • allowed host • expiry • revocation</text>
+  <text x="118" y="744" fill="#98a2b8" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="16">caller DID • target label • tested function • declared host • expiry • revocation</text>
 
-  <text x="84" y="836" fill="#68758e" font-family="Inter,Segoe UI,sans-serif" font-size="16">Evidence: npm test (6) • cargo test (9 + 1 doc) • strict typecheck • release WASM build</text>
+  <text x="84" y="836" fill="#68758e" font-family="Inter,Segoe UI,sans-serif" font-size="16">Evidence: npm test (11) • cargo test (14 + 1 doc) • strict typecheck • release WASM build</text>
 </svg>

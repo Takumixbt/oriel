@@ -1,4 +1,5 @@
 import { HttpTargetClient } from "./client.js";
+import { DEMO_OBSERVER_KEY } from "./attestation.js";
 import { OrielEngine } from "./engine.js";
 import { lengthPrefixedSha256 } from "./hash.js";
 import { loadDefaultPolicy } from "./policy.js";
@@ -24,6 +25,7 @@ export async function runDemo(): Promise<unknown> {
       ownerDid: OWNER_DID,
       store,
       transport: new HttpTargetClient(),
+      observerKey: DEMO_OBSERVER_KEY,
       now: () => now,
       createCanary: () => `oriel_${lengthPrefixedSha256([
         "demo-private-seed",

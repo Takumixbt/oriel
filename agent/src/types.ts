@@ -25,6 +25,8 @@ export interface TargetResponse {
   observedVersionHash: string;
   text: string;
   attemptedActions: AttemptedAction[];
+  targetSignature: string;
+  observerSignature: string;
 }
 
 export interface ProbeRequest {
@@ -89,7 +91,7 @@ export interface AccessRequest {
   agentDid: string;
   agentVersionHash: string;
   capability: string;
-  host?: string;
+  host: string;
   nowSecs: number;
 }
 

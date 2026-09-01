@@ -31,4 +31,4 @@ With dozens of submissions, a generic research, summarization, support, or alert
 
 ## Devil's-advocate conclusion
 
-The ambitious claim is defensible only if it stays narrow: Oriel does not prove arbitrary safety. It proves that one authenticated identity and build passed one private, versioned pack for one finite scope, then enforces that fact. The submission explicitly names target attestation and independently observed traces as production gaps so novelty does not outrun evidence.
+The ambitious claim is defensible only if it stays narrow: Oriel does not prove arbitrary safety. It proves that one authenticated identity and target-attested version label passed one private, versioned pack for one finite scope, then enforces that fact. The submission explicitly names measured artifact attestation and independently observed traces as production gaps so novelty does not outrun evidence.

@@ -1,89 +1,57 @@
-# Oriel — T3N Agent Build Challenge submission
+# Oriel — T3N Agent Build Challenge
 
-**Private qualification infrastructure for autonomous agents**
-
-- Repository: https://github.com/Takumixbt/oriel
-- Demo video: `[ADD VIDEO URL]`
-- Live evidence: testnet registration and scoped grants verified for `oriel@0.1.2`, contract ID `824`; the final qualification/access transcript is added after funded agent keys and a stable HTTPS target are supplied.
-
-## What Oriel does
-
-Oriel makes an enterprise agent's exact deployed identity and software version earn narrowly scoped, short-lived access by surviving tenant-private adversarial tests on T3N.
-
-Identity and permission systems answer who an agent is and what it was configured to call. They do not prove that the running build respects a private-data boundary under attack. Audits also tend to produce reports disconnected from runtime authorization. Oriel closes that gap: a deterministic test result becomes a condition of access at the protected T3N function.
-
-## Enterprise scenario
-
-The demo tests a fulfillment/support agent. Its legitimate job is to look up order state. It must not reveal hidden customer context, issue refunds, or send information to arbitrary hosts.
-
-The vulnerable build receives a fresh private canary and adversarial request. It leaks the canary, attempts an unauthorized refund, and tries `collector.invalid`, so Oriel stores a failed result. The hardened build refuses disclosure and stays within `support.lookup` and its approved host, so it receives a five-minute qualification.
-
-Only that target DID and version can read the protected synthetic order. A different identity, new unqualified version, untested function, expired pass, or revoked pass receives a denial with no order data.
-
-## Why this needs T3N
-
-Oriel uses T3N authenticated caller identity instead of caller-provided identity, cluster time for expiry, private tenant KV for policies/seeds/qualifications/data, contract-ID map ACLs, outbound host grants, WASI isolation, and a claims digest over stored qualification evidence. The T3N contract is the enforcement point.
-
-## What is complete
-
-- Rust/WASI T3N component with `run-qualification`, `get-qualification`, `protected-support-action`, and `revoke-qualification`;
-- separate tenant-owner, certifier-agent, and target-agent identities;
-- fresh per-run canary derived from a private master seed inside T3N;
-- deterministic checks for secret leakage, version mismatch, unauthorized functions, and unauthorized hosts;
-- DID/version/scope/host/time/revocation-bound admission;
-- vulnerable and hardened real HTTP fixtures;
-- end-to-end demo and independent TypeScript/Rust test suites;
-- strict typecheck, pinned SDK/lockfile, GitHub Actions, Docker/Render deployment;
-- agent card, architecture, threat model, probe protocol, test methodology, bugs, and handover runbook;
-- live scripts that preserve existing grants and never print key material.
-
-## Verification
-
-- Rust: 10 unit tests plus 1 doc test passing
-- TypeScript: strict typecheck passing
-- HTTP lifecycle/security suite: 5 tests passing
-- WASM release component: builds and exposes the expected T3N interfaces
-- Live testnet: contract registration and scoped grants verified; qualification/access needs funded certifier and target identities plus a public HTTPS target
-
-The corrected component is registered on T3N testnet as
-`z:51cfebef5279596508dae8355cb2c86a3ae08efc:oriel@0.1.2`, contract ID
-`824`, with WASM SHA-256
-`a2c8c62a3bd7d528bb329fbc9fc489814624a9654e45ac34e55ed188684d0e38`.
-The registration output confirmed all four private maps were seeded and ACL'd
-to the current contract. The remaining qualification/access transcript is
-operator-run evidence because it requires funded execution identities and a
-stable HTTPS target.
-
-## Maintainability and handover
-
-The pure policy engine is separated from T3N adapters. Test packs are versioned JSON. Dependencies are pinned. CI rebuilds both stacks. Docker runs the target fixture. The redeploy script rewrites all map ACLs to the new contract ID, avoiding a known operational footgun.
-
-I prefer to hand Oriel to Terminal 3 to host and maintain, with a 30-day transition. The repository is MIT licensed and the deterministic verdict has no proprietary model dependency. The runbook covers deployment, grants, key rotation, policy versioning, monitoring, rollback, and acceptance tests.
-
-## Bugs found
-
-1. `@terminal3/t3n-sdk@4.36.0` currently resolves a vulnerable archive-extraction chain; `npm audit` reports one critical and three moderate advisories. Oriel does not execute that path, and `npm audit fix --dry-run` does not resolve it.
-2. SDK `MapVisibility` is typed as unrestricted `string` despite exact `Private`/`Public` wire values, so casing mistakes survive compilation.
-3. Clean SDK installation is heavy (268 dependencies in this environment), largely due to bundled componentization/platform tooling; splitting runtime and authoring packages would improve CI and maintenance.
-4. New contract registrations produce new numeric IDs, so private-map ACLs can go stale. Oriel automatically rewrites all four ACLs after registration.
-
-Full reproduction steps, impact boundaries, mitigations, and maintainer actions are documented in [`docs/BUGS.md`](https://github.com/Takumixbt/oriel/blob/main/docs/BUGS.md).
-
-During the first live registration attempt, Oriel also caught and fixed its own descriptor omission: T3N rejected the agent card because each function was missing the required boolean `mutates` field. Follow-up validation exposed the required `auth`, `params_schema`, `returns`, `errors`, and `examples` shapes; the card and registration preflight now cover all of them. The corrected card is registered as `oriel@0.1.2` with contract ID `824`, and scoped grants have been verified.
-
-## Honest limits and roadmap
-
-A qualification proves one DID/version passed one test-pack version for one finite scope and interval; it is not universal safety. Production priorities are signed deployment manifests or remote attestation, independently observed tool traces, transformed-leak detectors, multiple policy packs, scheduled requalification, and portable receipts.
-
-## Screenshots
-
-- `[INSERT: architecture]`
-- `[INSERT: vulnerable build, three findings]`
-- `[INSERT: hardened build qualified]`
-- `[INSERT: protected record allowed]`
-- `[INSERT: version drift denied with null order]`
-- `[INSERT: revocation denied with null order]`
-- `[INSERT: green Node and Rust tests]`
-- `[INSERT: live T3N run]`
-
+Repository: https://github.com/Takumixbt/oriel
+Demo video: `[ADD VIDEO URL]`
 Challenge: https://superteam.fun/earn/listing/t3n-agent-build-challenge
+
+## The product
+
+Oriel is private qualification infrastructure for autonomous agents. It makes an enterprise agent's exact deployed identity and target-attested version label earn short-lived, narrowly scoped access by surviving adversarial tests that run against tenant-private policy and data on T3N.
+
+The problem is the gap between permission and behavior. A DID proves who is calling and an ACL says what that identity may attempt, but neither proves that the running build will respect a private-data boundary under attack. Oriel turns a deterministic qualification into a runtime access condition at the protected T3N function.
+
+## The demo
+
+The example is a fulfillment/support agent allowed to call `support.lookup` on `support-api.oriel.test`. It must not disclose hidden customer context, issue refunds, or contact arbitrary hosts.
+
+The vulnerable build fails because it leaks a fresh private canary, attempts `support.issue-refund`, and contacts `collector.invalid`. The hardened build refuses the canary disclosure and stays inside the approved function/host scope. Only the qualified target DID and exact requested version label can read the protected synthetic order. Version drift, wrong caller, expiry, untested capability/host, and revocation all deny with no protected record.
+
+The protected support read checks the fixed `support-api.oriel.test` route internally; the caller cannot substitute a host label at access time.
+
+## The trust model
+
+The T3N contract derives the per-run canary from tenant-private state, calls the probe gateway, verifies the target's signature over the exact response evidence, verifies a separate gateway observer receipt, and only then stores the qualification. The protected action uses the authenticated T3N caller DID, requested version label, capability, order, fixed support host, expiry, and revocation state; the caller cannot substitute a host label.
+
+The target key and observer key are separate. The local combined fixture exists only for deterministic testing; the deployable configuration defaults to a target-agent service behind a distinct observer gateway. The current gateway receipt proves integrity and separation of the returned HTTP evidence, not independent measurement of hidden in-process actions. A production observer should additionally instrument the agent's real tool and egress boundary.
+
+## Build evidence
+
+- Rust `wasm32-wasip2` component, source version `0.2.0`;
+- release WASM SHA-256: `eb39d5fabf27474644e969ff5bc76c238768b2898454c9b49d587bfb4ab17a6b`;
+- 14 Rust unit tests + 1 doc test;
+- 11 TypeScript lifecycle/security tests + strict typecheck;
+- deterministic local demo;
+- pinned toolchain, lockfile, CI, Docker/Render deployment;
+- agent card with schema preflight;
+- architecture, threat model, probe protocol, methodology, bug report, demo script, and handover runbook.
+
+The repo records historical testnet registration/grant evidence for `oriel@0.1.2`, contract ID `824`. The current `0.2.0` protocol must be registered separately because its WIT package and signed-attestation flow changed. A live qualification/access transcript is the final operator-run artifact once funded execution identities and a stable HTTPS gateway are available.
+
+## Bugs found and maintainership
+
+The repository documents four actionable SDK/platform issues: an unresolved transitive archive-extraction advisory, weak `MapVisibility` typing, a heavyweight clean install, and stale map ACLs after a new contract ID. Oriel mitigates the ACL issue automatically and records exact reproduction/impact boundaries in `docs/BUGS.md`.
+
+The pure policy engine is data-driven and separate from the T3N adapter. Redeployment, ACL rewrite, key rotation, versioned test packs, monitoring, rollback, and acceptance checks are documented in the handover runbook. I prefer Terminal 3 to host and maintain Oriel after a 30-day transition.
+
+## Attachments
+
+1. Architecture/role split
+2. Vulnerable run with three findings
+3. Hardened qualification with both attestations
+4. Protected action allowed
+5. Version drift denied
+6. Revocation denied
+7. Node and Rust test output
+8. Live T3N transcript when funded execution is available
+
+Full technical details and the challenge-ready submission copy are in [`docs/SUBMISSION.md`](https://github.com/Takumixbt/oriel/blob/main/docs/SUBMISSION.md).

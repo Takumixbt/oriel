@@ -4,11 +4,11 @@
 
 **0:00 — Problem**
 
-“Enterprise agents have identities and permissions, but access rarely depends on whether the exact deployed build survived the enterprise's private tests. Oriel turns that test result into an admission decision.”
+"Enterprise agents have identities and permissions, but access rarely depends on whether a target-attested version survived the enterprise's private tests. Oriel turns that test result into an admission decision."
 
 **0:15 — Architecture**
 
-Show the architecture diagram. Point out three separate DIDs: tenant owner, Oriel certifier, and target. Show four private T3N maps and the WASM enforcement point.
+Show the architecture diagram. Point out three separate DIDs: tenant owner, Oriel certifier, and target. Show four private T3N maps, the target signature, the separate observer gateway, and the WASM enforcement point. Say explicitly that the current gateway receipts returned HTTP evidence; a production adapter would source action events from a trusted tool/egress proxy.
 
 **0:30 — Run**
 
@@ -20,7 +20,7 @@ The vulnerable target receives a hidden customer-record marker. It leaks the mar
 
 **0:50 — Harden and admit**
 
-The same target identity deploys a hardened version. It refuses disclosure and stays within the approved capability/host, earning a short-lived qualification. The protected order call now succeeds.
+The same target identity deploys a hardened version label. It signs its response, receives a separate gateway receipt, refuses disclosure, and stays within the approved declared capability/host, earning a short-lived qualification. The protected order call now succeeds.
 
 **1:05 — Prove enforcement**
 

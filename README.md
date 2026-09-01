@@ -2,7 +2,7 @@
 
 **Qualification infrastructure for autonomous agents on T3N.**
 
-Oriel lets an enterprise require an agent to pass a private, adversarial test before that exact agent identity and software version can access a protected capability. A passing result is short-lived, scope-bound, revocable, and enforced at the point of access—not filed away as a report.
+Oriel lets an enterprise require an agent to pass a private, adversarial test before that exact agent identity and target-attested version label can access a protected capability. A passing result is short-lived, scope-bound, revocable, and enforced at the point of access—not filed away as a report.
 
 > Agents should not inherit trust from a name, a vendor, or an old audit. They should earn narrowly scoped access with the exact build they are running now.
 
@@ -13,10 +13,11 @@ Enterprises increasingly let agents read customer records, trigger workflows, or
 Oriel adds that missing qualification layer:
 
 1. A tenant stores a secret canary, test policy, qualification ledger, and protected data in private T3N maps.
-2. A separate Oriel certifier invokes a T3N WASM contract, which sends an adversarial probe to the target.
-3. A deterministic evaluator checks secret leakage, version mismatch, function escalation, and host exfiltration.
-4. The exact target DID + version either receives a short-lived qualification or fails.
-5. The protected function reads data only after the caller's T3N identity, version, scope, expiry, and revocation state all pass.
+2. A separate Oriel certifier invokes a T3N WASM contract, which sends an adversarial probe through a probe gateway to the target.
+3. The target signs its response with its Ethereum/T3N identity and a separate gateway receipts the exact response evidence.
+4. A deterministic evaluator checks secret leakage, version mismatch, declared function escalation, and declared host exfiltration.
+5. The requested target DID + version label either receives a short-lived qualification or fails.
+6. The protected function reads data only after the caller's T3N identity, version label, scope, expiry, and revocation state all pass.
 
 ![Oriel architecture](docs/assets/architecture.svg)
 
@@ -24,8 +25,10 @@ Oriel adds that missing qualification layer:
 flowchart LR
     O[Enterprise owner] -->|policy + canary + grants| T[T3N private maps]
     C[Oriel certifier DID] -->|run qualification| W[Oriel WASM contract]
-    W -->|private probe| A[Target agent DID + version]
-    A -->|response + attempted actions| W
+    W -->|private probe| G[Probe gateway • separate key]
+    G -->|probe| A[Target agent DID + version]
+    A -->|target-signed response| G
+    G -->|separate observer receipt| W
     W -->|failed or qualified| T
     A -->|protected call| W
     W -->|only if exact qualification is live| D[Protected enterprise data]
@@ -35,9 +38,11 @@ flowchart LR
 
 - **Private tests:** the target never receives the policy store and public output never contains the canary.
 - **Identity binding:** the protected path derives the caller DID from T3N `calling-user-did`; caller-supplied identity is not trusted.
-- **Build binding:** a qualification for version `v2` cannot authorize `v3`.
+- **Version-label binding:** a qualification for label `v2` cannot authorize a request for `v3`; measured artifact attestation is an explicit next layer.
+- **Cryptographic evidence binding:** a target signature must recover to the requested T3N DID, and a separate observer receipt must cover the same run and response.
 - **Conditional access:** failure is enforced as denial, not displayed as a dashboard warning.
 - **Least privilege:** qualification covers only tested functions and hosts.
+- **Fixed protected route:** the support read checks its allowlisted host internally; the caller cannot substitute a host label at access time.
 - **Time and operator control:** qualifications expire and the tenant owner can revoke them immediately.
 - **Deterministic verdicts:** no external LLM is required for the security decision.
 
@@ -51,12 +56,13 @@ npm run demo
 npm test
 npm run contract:test
 npm run contract:build
+npm run contract:hash
 ```
 
 `npm run demo` starts an ephemeral target and executes the whole lifecycle:
 
 - vulnerable version leaks the canary and attempts an unauthorized refund/exfiltration → **failed**;
-- hardened version observes the boundary → **qualified**;
+- hardened version preserves the declared boundary → **qualified**;
 - qualified build reads the synthetic protected order → **allowed**;
 - unqualified version drift → **denied with no data**;
 - tenant revocation → **denied with no data**.
@@ -78,14 +84,17 @@ The TypeScript integration suite and Rust policy suite independently test the sa
 
 ## Live T3N path
 
-The offline build is fully verified. The current testnet deployment is registered as `oriel@0.1.2` (contract ID `824`). A complete live lifecycle additionally needs funded certifier/target identities and a public HTTPS URL for the target fixture.
+The offline build is fully verified. The repository source is now `0.2.0`; because T3N registration is versioned and allocates a new contract ID, the prior `0.1.2` testnet deployment is historical and must not be used with this protocol. A fresh live lifecycle additionally needs funded certifier/target identities, an observer receipt key, and a public HTTPS probe gateway.
 
 ```powershell
 Copy-Item .env.example .env
 # Fill .env locally. It is gitignored, auto-loaded, and never printed.
 npm run contract:build
+npm run contract:hash
+npm run live:preflight
 npm run live:register
 # Copy tenantDid from the result into ORIEL_TENANT_DID.
+npm run live:preflight -- --live
 npm run live:grant
 npm run live:qualify
 npm run live:protected
@@ -93,7 +102,7 @@ npm run live:revoke
 npm run live:protected
 ```
 
-The target fixture includes a Dockerfile and `render.yaml`. In production, replace it with the enterprise agent endpoint under test.
+The local demo uses a combined signed fixture. For deployment, run `targets/src/server.ts` in `gateway` mode in front of a separately deployed `agent` mode target; the target holds only its signing key and the gateway holds only the observer receipt key. `live:preflight` checks that `TARGET_AGENT_KEY`, `ORIEL_TARGET_DID`, and any available target attestation key agree, while `live:preflight -- --live` also checks the observer key stored in the private T3N map. `Dockerfile` and `render.yaml` describe the gateway deployment shape. In production, replace the fixture upstream with the enterprise agent endpoint under test.
 
 See [live runbook](docs/HANDOVER.md), [architecture](docs/ARCHITECTURE.md), and [threat model](docs/THREAT_MODEL.md).
 
@@ -103,12 +112,12 @@ Oriel was built for the [T3N Agent Build Challenge](https://superteam.fun/earn/l
 
 ## Current status
 
-- Rust contract: **10 unit tests + 1 doc test passing**
+- Rust contract: **14 unit tests + 1 doc test passing**
 - TypeScript: **strict typecheck passing**
-- End-to-end HTTP lifecycle: **5 tests passing**
+- End-to-end HTTP lifecycle: **9 tests passing**
 - WASI component: **build and WIT inspection passing**
-- Live T3N registration/grants: **verified on testnet**; qualification/access evidence needs funded agent keys and a public HTTPS target
+- Live T3N registration/grants: historical `0.1.2` evidence exists; `0.2.0` qualification/access evidence needs funded agent keys, observer key, and a public HTTPS gateway
 
-Oriel demonstrates a strong admission primitive; it does not claim to prove an arbitrary agent safe under every prompt or future environment. The tested policy, build hash, time window, and capability scope are explicit parts of the result.
+Oriel demonstrates a strong admission primitive; it does not claim to prove an arbitrary agent safe under every prompt or future environment. The tested policy, target-attested version label, time window, and capability scope are explicit parts of the result.
 
 MIT licensed.

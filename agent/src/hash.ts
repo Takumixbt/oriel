@@ -1,6 +1,10 @@
 import { createHash } from "node:crypto";
 
 export function lengthPrefixedSha256(parts: Array<string | Uint8Array>): string {
+  return Buffer.from(lengthPrefixedSha256Bytes(parts)).toString("hex");
+}
+
+export function lengthPrefixedSha256Bytes(parts: Array<string | Uint8Array>): Uint8Array {
   const hash = createHash("sha256");
   for (const part of parts) {
     const bytes = typeof part === "string" ? Buffer.from(part) : Buffer.from(part);
@@ -9,7 +13,7 @@ export function lengthPrefixedSha256(parts: Array<string | Uint8Array>): string 
     hash.update(length);
     hash.update(bytes);
   }
-  return hash.digest("hex");
+  return hash.digest();
 }
 
 export function canonicalJson(value: unknown): string {

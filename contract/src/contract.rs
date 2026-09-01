@@ -5,9 +5,12 @@ use crate::model::{
 
 #[cfg(target_arch = "wasm32")]
 use crate::{
+    attestation::verify_response_attestations,
     engine::{
-        build_record, can_read_qualification, check_access, derive_run_canary, qualification_key,
-        sha256_bytes, sha256_hex,
+        build_record, can_read_qualification, check_access, derive_run_canary, is_t3n_did,
+        qualification_key, sha256_bytes, sha256_hex, validate_policy, validate_protected_request,
+        validate_target_response, validate_target_version, MAX_TARGET_URL_BYTES,
+        PROTECTED_SUPPORT_HOST,
     },
     model::{
         AccessRequest, GetQualificationResponse, PrivateProbeContext, ProbeRequest,
@@ -140,6 +143,16 @@ fn store_record(record: &QualificationRecord) -> Result<(), String> {
 
 #[cfg(target_arch = "wasm32")]
 fn run_qualification_wasm(req: RunQualificationRequest) -> Result<QualificationResult, String> {
+    if !is_t3n_did(&req.target_agent_did) {
+        return Err("target agent DID must be a canonical T3N Ethereum DID".to_string());
+    }
+    validate_target_version(&req.target_version_hash)?;
+    if req.test_pack_id.trim().is_empty() || req.test_pack_id.len() > 128 {
+        return Err("test pack ID is empty or too large".to_string());
+    }
+    if req.target_url.len() > MAX_TARGET_URL_BYTES {
+        return Err("target URL is too large".to_string());
+    }
     if !req.target_url.starts_with("https://") {
         return Err("target URL must use https".to_string());
     }
@@ -151,11 +164,14 @@ fn run_qualification_wasm(req: RunQualificationRequest) -> Result<QualificationR
     if policy.pack_id != req.test_pack_id {
         return Err("stored policy ID does not match requested pack".to_string());
     }
+    validate_policy(&policy)?;
 
     let canary_key = format!("canary:{}", req.test_pack_id);
+    let observer_key_name = format!("observer:{}", req.test_pack_id);
     let now = tenant_context::cluster_timestamp_secs();
     let seq = tenant_context::seq_no();
     let private_seed = read_required(SECRETS_TAIL, &canary_key)?;
+    let observer_key = read_required(SECRETS_TAIL, &observer_key_name)?;
     let canary = derive_run_canary(
         &private_seed,
         &req.target_agent_did,
@@ -188,7 +204,11 @@ fn run_qualification_wasm(req: RunQualificationRequest) -> Result<QualificationR
             ("Content-Type".to_string(), "application/json".to_string()),
             (
                 "User-Agent".to_string(),
-                "oriel-contract/0.1 qualification-probe".to_string(),
+                "oriel-contract/0.2 qualification-probe".to_string(),
+            ),
+            (
+                "x-oriel-max-response-bytes".to_string(),
+                "262144".to_string(),
             ),
         ]),
         payload: Some(payload),
@@ -206,6 +226,15 @@ fn run_qualification_wasm(req: RunQualificationRequest) -> Result<QualificationR
     }
     let target_response: TargetResponse = serde_json::from_slice(&target_http.payload)
         .map_err(|_| "target returned a malformed response; body suppressed".to_string())?;
+    validate_target_response(&target_response)?;
+    verify_response_attestations(
+        &probe.run_id,
+        &probe.test_pack_id,
+        &req.target_agent_did,
+        &target_response,
+        &observer_key,
+    )
+    .map_err(|_| "target attestation or independent observer receipt failed".to_string())?;
 
     let record = build_record(
         &req.target_agent_did,
@@ -239,6 +268,10 @@ fn run_qualification_wasm(req: RunQualificationRequest) -> Result<QualificationR
 fn get_qualification_wasm(
     req: GetQualificationRequest,
 ) -> Result<GetQualificationResponse, String> {
+    if !is_t3n_did(&req.agent_did) {
+        return Err("agent DID must be a canonical T3N Ethereum DID".to_string());
+    }
+    validate_target_version(&req.agent_version_hash)?;
     let caller = caller_did()?;
     let tenant_owner = format!("did:t3n:{}", hex::encode(tenant_context::tenant_did()));
     if !can_read_qualification(&caller, &tenant_owner, &req.agent_did) {
@@ -258,6 +291,7 @@ fn get_qualification_wasm(
 fn protected_support_action_wasm(
     req: ProtectedSupportRequest,
 ) -> Result<ProtectedSupportResponse, String> {
+    validate_protected_request(&req.agent_version_hash, &req.capability, &req.order_id)?;
     let agent_did = caller_did().map_err(|e| format!("protected-support-action: {e}"))?;
     let Some(record) = load_record(&agent_did, &req.agent_version_hash)? else {
         return Ok(ProtectedSupportResponse {
@@ -274,7 +308,7 @@ fn protected_support_action_wasm(
             agent_did,
             agent_version_hash: req.agent_version_hash,
             capability: req.capability,
-            host: None,
+            host: PROTECTED_SUPPORT_HOST.to_string(),
             now_secs: tenant_context::cluster_timestamp_secs(),
         },
     );
@@ -304,6 +338,10 @@ fn protected_support_action_wasm(
 fn revoke_qualification_wasm(
     req: RevokeQualificationRequest,
 ) -> Result<QualificationRecord, String> {
+    if !is_t3n_did(&req.agent_did) {
+        return Err("agent DID must be a canonical T3N Ethereum DID".to_string());
+    }
+    validate_target_version(&req.agent_version_hash)?;
     if req.reason.trim().is_empty() || req.reason.len() > 200 {
         return Err("revocation reason must be between 1 and 200 characters".to_string());
     }
@@ -330,6 +368,7 @@ fn revoke_qualification_wasm(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::model::TargetResponse;
 
     #[test]
     fn all_exports_reject_malformed_json_without_echoing_input() {
@@ -343,5 +382,16 @@ mod tests {
             assert!(message.contains("bad input"));
             assert!(!message.contains("private-secret"));
         }
+    }
+
+    #[test]
+    fn target_response_requires_an_explicit_action_trace() {
+        let input = br#"{
+            \"observedVersionHash\": \"v2\",
+            \"text\": \"safe\",
+            \"targetSignature\": \"0x\",
+            \"observerSignature\": \"0x\"
+        }"#;
+        assert!(serde_json::from_slice::<TargetResponse>(input).is_err());
     }
 }

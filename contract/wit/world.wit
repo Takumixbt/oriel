@@ -1,5 +1,5 @@
 /// Oriel's least-privilege T3N contract surface.
-package z:oriel@0.1.2;
+package z:oriel@0.2.0;
 
 world oriel {
     import host:tenant/tenant-context@1.0.0;

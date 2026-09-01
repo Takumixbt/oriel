@@ -1,6 +1,6 @@
 [package]
 name = "oriel-contract"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2021"
 description = "T3N TEE contract for private agent qualification and capability-gated data access."
 license = "MIT"
@@ -11,9 +11,12 @@ crate-type = ["cdylib", "lib"]
 
 [dependencies]
 hex = { version = "0.4", default-features = false, features = ["alloc"] }
+hmac = { version = "0.12", default-features = false }
+k256 = { version = "0.13", default-features = false, features = ["ecdsa"] }
 serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 sha2 = { version = "0.10", default-features = false }
+sha3 = { version = "0.10", default-features = false }
 wit-bindgen = { version = "0.49", default-features = false, features = ["macros", "realloc"] }
 
 [profile.release]

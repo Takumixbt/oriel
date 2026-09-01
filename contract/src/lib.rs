@@ -3,7 +3,7 @@
 
 extern crate alloc;
 
-pub const CONTRACT_VERSION: &str = "0.1.2";
+pub const CONTRACT_VERSION: &str = "0.2.0";
 
 wit_bindgen::generate!({
     world: "oriel",
@@ -15,6 +15,7 @@ wit_bindgen::generate!({
     generate_all,
 });
 
+mod attestation;
 mod contract;
 mod engine;
 mod model;

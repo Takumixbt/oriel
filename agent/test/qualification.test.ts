@@ -1,12 +1,18 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
+import {
+  DEMO_OBSERVER_KEY,
+  DEMO_TARGET_PRIVATE_KEY,
+  signObserverReceipt,
+  signTargetResponse,
+} from "../src/attestation.js";
 import { HttpTargetClient } from "../src/client.js";
 import { runDemo } from "../src/demo.js";
 import { checkAccess, evaluateResponse, OrielEngine } from "../src/engine.js";
 import { loadDefaultPolicy } from "../src/policy.js";
 import { InMemoryOrielStore, qualificationKey } from "../src/store.js";
-import type { QualificationRecord, TargetTransport } from "../src/types.js";
+import type { QualificationRecord, TargetResponse, TargetTransport } from "../src/types.js";
 import {
   HARDENED_VERSION,
   TARGET_DID,
@@ -20,11 +26,30 @@ const OWNER_DID = "did:t3n:test:owner";
 test("private canary leakage fails without appearing in public evidence", async () => {
   const policy = await loadDefaultPolicy();
   const transport: TargetTransport = {
-    async probe() {
-      return {
+    async probe(_targetUrl, request) {
+      const response: TargetResponse = {
         observedVersionHash: "v1",
         text: `hidden=${PRIVATE_CANARY}`,
         attemptedActions: [],
+        targetSignature: "",
+        observerSignature: "",
+      };
+      return {
+        ...response,
+        targetSignature: signTargetResponse(
+          request.runId,
+          request.testPackId,
+          TARGET_DID,
+          response,
+          DEMO_TARGET_PRIVATE_KEY,
+        ),
+        observerSignature: signObserverReceipt(
+          request.runId,
+          request.testPackId,
+          TARGET_DID,
+          response,
+          DEMO_OBSERVER_KEY,
+        ),
       };
     },
   };
@@ -33,6 +58,7 @@ test("private canary leakage fails without appearing in public evidence", async 
     ownerDid: OWNER_DID,
     store,
     transport,
+    observerKey: DEMO_OBSERVER_KEY,
     now: () => 100,
     createCanary: () => PRIVATE_CANARY,
   });
@@ -58,6 +84,7 @@ test("HTTP lifecycle qualifies only the hardened version and gates protected dat
       ownerDid: OWNER_DID,
       store,
       transport: new HttpTargetClient(),
+      observerKey: DEMO_OBSERVER_KEY,
       now: () => now,
       createCanary: () => PRIVATE_CANARY,
     });
@@ -145,6 +172,61 @@ test("HTTP lifecycle qualifies only the hardened version and gates protected dat
   }
 });
 
+test("qualification fails closed when either attestation is not valid", async () => {
+  const target = await startTargetServer();
+  try {
+    const policy = await loadDefaultPolicy();
+    const signed = await new HttpTargetClient().probe(
+      `${target.baseUrl}/hardened/v2/run`,
+      {
+        runId: "attestation-test-run",
+        testPackId: policy.packId,
+        attackPrompt: policy.attackPrompt,
+        privateContext: { customerRecordCanary: PRIVATE_CANARY, syntheticOrderId: "order-1042" },
+      },
+    );
+    const tampered: TargetResponse = {
+      ...signed,
+      text: `${signed.text} tampered`,
+    };
+    const engine = new OrielEngine({
+      ownerDid: OWNER_DID,
+      store: new InMemoryOrielStore(),
+      observerKey: DEMO_OBSERVER_KEY,
+      transport: { probe: async () => tampered },
+      now: () => 100,
+    });
+    await assert.rejects(
+      engine.qualify({
+        targetAgentDid: TARGET_DID,
+        targetVersionHash: HARDENED_VERSION,
+        targetUrl: "https://target.test/run",
+        policy,
+      }),
+      /target signature|observer receipt/,
+    );
+
+    const observerFailure = new OrielEngine({
+      ownerDid: OWNER_DID,
+      store: new InMemoryOrielStore(),
+      observerKey: "different-observer-key-1234",
+      transport: new HttpTargetClient(),
+      now: () => 100,
+    });
+    await assert.rejects(
+      observerFailure.qualify({
+        targetAgentDid: TARGET_DID,
+        targetVersionHash: HARDENED_VERSION,
+        targetUrl: `${target.baseUrl}/hardened/v2/run`,
+        policy,
+      }),
+      /observer receipt/,
+    );
+  } finally {
+    await target.close();
+  }
+});
+
 test("access checks are identity, version, host, scope, status and time bound", () => {
   const record: QualificationRecord = {
     qualificationId: "q1",
@@ -178,6 +260,7 @@ test("access checks are identity, version, host, scope, status and time bound", 
       agentVersionHash: "v2",
       capability: "support.lookup",
       nowSecs: 11,
+      host: "support.test",
     }).reason,
     "caller_did_mismatch",
   );
@@ -186,6 +269,7 @@ test("access checks are identity, version, host, scope, status and time bound", 
       agentDid: record.agentDid,
       agentVersionHash: "v3",
       capability: "support.lookup",
+      host: "support.test",
       nowSecs: 11,
     }).reason,
     "version_not_qualified",
@@ -200,6 +284,16 @@ test("access checks are identity, version, host, scope, status and time bound", 
     }).reason,
     "host_not_qualified",
   );
+  assert.equal(
+    checkAccess(record, {
+      agentDid: record.agentDid,
+      agentVersionHash: record.agentVersionHash,
+      capability: "support.lookup",
+      host: "",
+      nowSecs: 11,
+    }).reason,
+    "host_not_qualified",
+  );
 });
 
 test("empty canaries and transparent qualification keys are rejected", async () => {
@@ -209,6 +303,8 @@ test("empty canaries and transparent qualification keys are rejected", async () 
       observedVersionHash: "v1",
       text: "safe",
       attemptedActions: [],
+      targetSignature: "",
+      observerSignature: "",
     }),
     /must not be empty/,
   );

@@ -65,14 +65,15 @@ The advisories include archive path traversal/link creation (for example GHSA-mp
 
 **Fix:** the card now declares `auth`, boolean `mutates`, object `params_schema`, object `returns`, and array `errors`/`examples` fields. It uses `mutates: true` for qualification/revocation and `mutates: false` for read/protected-action functions. The registration path now validates those fields before any network mutation. This is recorded as an Oriel integration defect, not attributed to T3N.
 
-**Recovery detail:** the failed `0.1.0` registration consumed that monotonically increasing contract version before descriptor publication failed; retrying `0.1.0` was rejected as not higher than the current version. Oriel used `0.1.1` for an emergency descriptor repair, then advanced the coherent contract/WIT/card release to `0.1.2` for the clean repeatable registration. Testnet registration and all four map ACL updates now succeed for contract ID `824`.
+**Recovery detail:** the failed `0.1.0` registration consumed that monotonically increasing contract version before descriptor publication failed; retrying `0.1.0` was rejected as not higher than the current version. Oriel used `0.1.1` for an emergency descriptor repair, then advanced the coherent contract/WIT/card release to `0.1.2` for the clean repeatable registration. Testnet registration and all four map ACL updates succeeded for historical contract ID `824`; the current source is `0.2.0` and needs a new registration/ACL rotation.
 
-**Prevention:** registration now validates every function descriptor field that the live node required before connecting or mutating T3N, and a unit test covers the preflight path. T3N could make contract registration plus descriptor publication atomic or offer a documented recovery/rollback operation for partial registration. The corrected registration and grant path are verified; the qualification/access phase still requires funded agent identities and a reachable HTTPS target.
+**Prevention:** registration now validates every function descriptor field that the live node required before connecting or mutating T3N, checks the card version against the source release, and a unit test covers the preflight path. T3N could make contract registration plus descriptor publication atomic or offer a documented recovery/rollback operation for partial registration. The corrected `0.1.2` registration and grant path are historical; the `0.2.0` registration must be repeated because it adds target/observer attestations and a required protected-call host.
 
 ## Oriel limitations (not platform bugs)
 
-- Live `calling-user-did`, map ACL, descriptor, and outbound-host behavior still need a credentialed testnet execution.
-- The target self-reports its version; production should add signed build manifests or remote attestation.
+- Live `calling-user-did`, map ACL, descriptor, outbound-host, and target/observer attestation behavior still need a credentialed `0.2.0` testnet execution.
+- The target now signs its observed version label and response, and a separate gateway receipts the returned evidence; production still needs trusted tool/egress observation plus signed build manifests or remote attestation to prove the actual behavior and artifact binding.
 - Exact canary matching does not detect transformed/encoded leakage.
-- The target adapter trusts the target to report attempted actions; production should combine target reports with independently observed tool/egress traces.
+- The contract trusts the observer gateway's receipt, so the gateway must instrument the real tool/egress boundary and must not share its key with the target.
+- The current T3N HTTP WIT returns a buffered `list<u8>`; the contract cannot enforce a pre-allocation body limit until the host exposes streaming or a response-size field.
 - Qualification results are tenant-local records, not portable credentials.

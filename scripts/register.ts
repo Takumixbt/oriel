@@ -1,9 +1,9 @@
 import { createHash, randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { CONTRACT_VERSION } from "../contract-version.js";
 import { connect, requiredEnv, safeError, scriptName, validateAgentCard } from "./t3n.js";
 
-const CONTRACT_VERSION = "0.1.2";
 const CONTRACT_TAIL = "oriel";
 const MAPS = [
   "oriel-secrets",
@@ -21,7 +21,12 @@ async function main(): Promise<void> {
   const descriptorPath = fileURLToPath(new URL("../agent/agent-card.json", import.meta.url));
   const descriptor: unknown = JSON.parse(await readFile(descriptorPath, "utf8"));
   validateAgentCard(descriptor);
+  if ((descriptor as { version?: unknown }).version !== CONTRACT_VERSION) {
+    throw new Error("agent card version must match the contract version");
+  }
 
+  const observerKey = requiredEnv("ORIEL_OBSERVER_ATTESTATION_KEY");
+  if (observerKey.length < 16) throw new Error("ORIEL_OBSERVER_ATTESTATION_KEY must be at least 16 characters");
   const owner = await connect(requiredEnv("T3N_API_KEY"));
   await owner.tenant.tenant.me();
 
@@ -66,6 +71,11 @@ async function main(): Promise<void> {
     privateCanarySeed,
   );
   await owner.tenant.maps.entrySet(
+    "oriel-secrets",
+    "observer:support-data-boundary",
+    observerKey,
+  );
+  await owner.tenant.maps.entrySet(
     "oriel-protected-data",
     "order:order-1042",
     JSON.stringify({
@@ -85,6 +95,7 @@ async function main(): Promise<void> {
     wasmSha256: createHash("sha256").update(wasm).digest("hex"),
     maps: MAPS,
     privateCanarySeeded: true,
+    observerReceiptKeySeeded: true,
     next: "Set ORIEL_TENANT_DID to tenantDid, then run npm run live:grant",
   }, null, 2));
 }

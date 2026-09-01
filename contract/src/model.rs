@@ -23,8 +23,9 @@ pub struct AttemptedAction {
 pub struct TargetResponse {
     pub observed_version_hash: String,
     pub text: String,
-    #[serde(default)]
     pub attempted_actions: Vec<AttemptedAction>,
+    pub target_signature: String,
+    pub observer_signature: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -155,7 +156,7 @@ pub struct AccessRequest {
     pub agent_did: String,
     pub agent_version_hash: String,
     pub capability: String,
-    pub host: Option<String>,
+    pub host: String,
     pub now_secs: u64,
 }
 
