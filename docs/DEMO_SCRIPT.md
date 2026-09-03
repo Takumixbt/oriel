@@ -32,13 +32,17 @@ The next unqualified version calls the same protected function and gets `qualifi
 
 ## Screenshot checklist
 
-1. architecture diagram rendered in README;
-2. vulnerable result with three finding codes;
-3. hardened result with `qualified` and expiry;
-4. successful protected call showing synthetic order;
-5. version-drift denial with null order;
-6. post-revocation denial with null order;
-7. green `npm test` and `cargo test` output;
-8. live T3N registration/grant/qualification output once credentials are supplied.
+Use the checked-in PNGs in `submission/screenshots/` (or regenerate with `npm run demo`, `npm test`, `npm run contract:test`, `npm run contract:hash`):
+
+1. architecture diagram (`01-architecture.png`);
+2. lifecycle overview (`02-lifecycle.png`);
+3. vulnerable result with three finding codes (`03-vulnerable-failed.png`);
+4. hardened result with `qualified` (`04-hardened-qualified.png`);
+5. successful protected call showing synthetic order (`05-protected-allowed.png`);
+6. version-drift denial with null order (`06-version-drift-denied.png`);
+7. post-revocation denial with null order (`07-revocation-denied.png`);
+8. green `npm test` and `cargo test` output (`08-npm-test.png`, `09-cargo-test.png`);
+9. release contract hash (`10-contract-hash.png`);
+10. live T3N registration/grant/qualification output once credentials are supplied.
 
 Never include terminals or screenshots that expose environment variables, private keys, full probe payloads, or canaries.

@@ -6,4 +6,4 @@ For a private deployment, report suspected key exposure, qualification forgery, 
 
 The repository contains synthetic records only. Example DIDs and key-shaped values are nonfunctional test data generated at runtime.
 
-Supported release: `0.1.x` during the challenge. This prototype has not received an independent security audit.
+Supported release: `0.2.x` during the challenge. This prototype has not received an independent security audit.

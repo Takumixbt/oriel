@@ -80,14 +80,14 @@ The TypeScript integration suite and Rust policy suite independently test the sa
 | `targets/` | Vulnerable and hardened target-agent fixtures |
 | `test-packs/` | Versioned enterprise qualification policy |
 | `scripts/` | Credential-safe registration, grants, qualification, access, and revocation |
-| `docs/` | Architecture, threat model, test method, bugs, demo, handover, and submission copy |
+| `docs/` | Architecture, threat model, test method, bugs, demo, handover |
 
 ## Live T3N path
 
 The offline build is fully verified. The repository source is now `0.2.0`; because T3N registration is versioned and allocates a new contract ID, the prior `0.1.2` testnet deployment is historical and must not be used with this protocol. A fresh live lifecycle additionally needs funded certifier/target identities, an observer receipt key, and a public HTTPS probe gateway.
 
-```powershell
-Copy-Item .env.example .env
+```bash
+cp .env.example .env
 # Fill .env locally. It is gitignored, auto-loaded, and never printed.
 npm run contract:build
 npm run contract:hash
@@ -108,14 +108,19 @@ See [live runbook](docs/HANDOVER.md), [architecture](docs/ARCHITECTURE.md), and 
 
 ## Challenge fit
 
-Oriel was built for the [T3N Agent Build Challenge](https://superteam.fun/earn/listing/t3n-agent-build-challenge): a useful enterprise agent on T3N that can be maintained and run after the challenge. The project includes a public-repo-ready codebase, reproducible build, CI, Docker deployment, screenshots checklist, bug report, and an explicit handover process.
+Oriel was built for the [T3N Agent Build Challenge](https://superteam.fun/earn/listing/t3n-agent-build-challenge): a useful enterprise agent on T3N that can be maintained and run after the challenge. The project includes a public-repo-ready codebase, reproducible build, CI, Docker deployment, screenshots, bug report, and an explicit handover process.
+
+**Submit pack:** [`submission/HOW_TO_SUBMIT.md`](submission/HOW_TO_SUBMIT.md) · Google Doc copy: [`GOOGLE_DOC.md`](GOOGLE_DOC.md) · Screenshots: [`submission/screenshots/`](submission/screenshots/)
+
+Primary docs for maintainers: [architecture](docs/ARCHITECTURE.md), [bugs](docs/BUGS.md), [handover](docs/HANDOVER.md), [threat model](docs/THREAT_MODEL.md).
 
 ## Current status
 
 - Rust contract: **14 unit tests + 1 doc test passing**
 - TypeScript: **strict typecheck passing**
-- End-to-end HTTP lifecycle: **9 tests passing**
+- TypeScript lifecycle/security suite: **11 tests passing**
 - WASI component: **build and WIT inspection passing**
+- Release WASM SHA-256 (`0.2.0`): `295820dfb875f051d64238f4bc7cf936040de9fbd869f8a9b586b23798d894a7`
 - Live T3N registration/grants: historical `0.1.2` evidence exists; `0.2.0` qualification/access evidence needs funded agent keys, observer key, and a public HTTPS gateway
 
 Oriel demonstrates a strong admission primitive; it does not claim to prove an arbitrary agent safe under every prompt or future environment. The tested policy, target-attested version label, time window, and capability scope are explicit parts of the result.

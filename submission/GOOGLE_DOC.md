@@ -4,9 +4,6 @@
 **Challenge:** https://superteam.fun/earn/listing/t3n-agent-build-challenge  
 **Handover preference:** Pass to Terminal 3 to host and maintain (30-day transition)
 
-> Paste this file into a public Google Doc, then insert the PNGs from `submission/screenshots/`.  
-> Full submit instructions: [`submission/HOW_TO_SUBMIT.md`](submission/HOW_TO_SUBMIT.md)
-
 ---
 
 ## What Oriel is
@@ -53,18 +50,39 @@ npm run contract:hash
 
 ## Screenshots
 
-Insert PNGs from `submission/screenshots/` (also at `docs/assets/screenshots/`):
+Insert the PNGs from the repo folder `submission/screenshots/` (same files also live at `docs/assets/screenshots/`).
 
-1. `01-architecture.png` — architecture / role split  
-2. `02-lifecycle.png` — verified lifecycle overview  
-3. `03-vulnerable-failed.png` — vulnerable run with three findings  
-4. `04-hardened-qualified.png` — hardened qualification  
-5. `05-protected-allowed.png` — protected action allowed  
-6. `06-version-drift-denied.png` — version drift denied  
-7. `07-revocation-denied.png` — revocation denied  
-8. `08-npm-test.png` — 11 TypeScript tests passing  
-9. `09-cargo-test.png` — 14 Rust unit tests + 1 doc test  
-10. `10-contract-hash.png` — release WASM hash for `0.2.0`
+### 1. Architecture / role split
+Insert: `01-architecture.png`
+
+### 2. Verified lifecycle overview
+Insert: `02-lifecycle.png`
+
+### 3. Vulnerable run — three findings (failed)
+Insert: `03-vulnerable-failed.png`
+
+### 4. Hardened run — qualified
+Insert: `04-hardened-qualified.png`
+
+### 5. Protected action — allowed
+Insert: `05-protected-allowed.png`
+
+### 6. Version drift — denied, null order
+Insert: `06-version-drift-denied.png`
+
+### 7. Revocation — denied, null order
+Insert: `07-revocation-denied.png`
+
+### 8. TypeScript tests — 11 passing
+Insert: `08-npm-test.png`
+
+### 9. Rust contract tests — 14 unit + 1 doc
+Insert: `09-cargo-test.png`
+
+### 10. Release contract hash (0.2.0)
+Insert: `10-contract-hash.png`
+
+Optional full dump: `00-full-demo.png`
 
 ---
 
@@ -85,7 +103,7 @@ Historical note: testnet registration/grants for earlier `oriel@0.1.2` (contract
 
 ---
 
-## Why this uses T3N
+## Why this uses T3N (not a side harness)
 
 - Authenticated caller DID from T3N (`calling-user-did`), not caller-supplied identity
 - Tenant-private KV for policies, secrets, qualifications, and protected data
@@ -99,14 +117,14 @@ Historical note: testnet registration/grants for earlier `oriel@0.1.2` (contract
 
 ## Bugs found while building on T3N
 
-Full reproduction: https://github.com/Takumixbt/oriel/blob/main/docs/BUGS.md
+Full reproduction steps: https://github.com/Takumixbt/oriel/blob/main/docs/BUGS.md
 
-1. SDK dependency advisory chain through Bytecode Alliance tooling (`npm audit`: 1 critical + 3 moderate)
-2. `MapVisibility` typed as unrestricted `string` despite `Private`/`Public` wire values
-3. Heavyweight clean install for a runtime client
-4. Stale private-map ACLs after a new contract ID (Oriel rewrites ACLs on register)
+1. **SDK dependency advisory chain** — `@terminal3/t3n-sdk@4.36.0` resolves a vulnerable archive-extraction path via Bytecode Alliance tooling (`npm audit`: 1 critical + 3 moderate). Oriel runtime does not execute that path; authors still inherit it on install/build.
+2. **`MapVisibility` typed as `string`** — casing mistakes like `"private"` survive TypeScript despite wire values being `Private` / `Public`.
+3. **Heavyweight clean install** — SDK pulls a large componentization/tooling tree (268 deps observed), slowing CI/onboarding for runtime-only clients.
+4. **Stale map ACLs after new contract ID** — registration allocates a new numeric contract ID; private-map ACLs can strand a valid redeploy. Oriel’s registration script rewrites all four map ACLs automatically.
 
-Also fixed on our side: agent-card functions must declare boolean `mutates`; preflight now validates before network mutation.
+Also fixed on our side during live registration: agent-card functions must declare boolean `mutates` (and related descriptor fields). Preflight validation now catches that before network mutation.
 
 ---
 
@@ -114,9 +132,16 @@ Also fixed on our side: agent-card functions must declare boolean `mutates`; pre
 
 **Preference: hand Oriel to Terminal 3 to host and maintain**, with author support for a 30-day transition.
 
-Ops runbook: https://github.com/Takumixbt/oriel/blob/main/docs/HANDOVER.md  
-Architecture: https://github.com/Takumixbt/oriel/blob/main/docs/ARCHITECTURE.md  
-Threat model: https://github.com/Takumixbt/oriel/blob/main/docs/THREAT_MODEL.md
+Why this is operable after the challenge:
+
+- Pure policy engine separated from T3N adapters
+- Versioned JSON test packs
+- Pinned Node lockfile + Rust toolchain
+- CI for typecheck, TS tests, Rust tests, WASM build, hash check
+- Docker/Render split: target holds signing key; gateway holds observer key
+- Runbook covers first deploy, redeploy + ACL rewrite, key rotation, policy updates, monitoring, rollback, acceptance checklist
+
+Details: https://github.com/Takumixbt/oriel/blob/main/docs/HANDOVER.md
 
 MIT licensed. Deterministic verdicts — no proprietary model dependency for the security decision.
 
@@ -125,3 +150,15 @@ MIT licensed. Deterministic verdicts — no proprietary model dependency for the
 ## Honest limits
 
 A qualification proves that one DID and target-attested version label passed one test-pack version for one finite scope and interval. It is not universal agent safety or measured artifact provenance. Production next steps: signed deployment manifests / remote attestation, observer instrumentation of real tool/egress traces, transformed-leak detectors, scheduled requalification, portable receipts.
+
+---
+
+## Links for reviewers
+
+- Repo: https://github.com/Takumixbt/oriel
+- Architecture: https://github.com/Takumixbt/oriel/blob/main/docs/ARCHITECTURE.md
+- Threat model: https://github.com/Takumixbt/oriel/blob/main/docs/THREAT_MODEL.md
+- Bugs: https://github.com/Takumixbt/oriel/blob/main/docs/BUGS.md
+- Handover: https://github.com/Takumixbt/oriel/blob/main/docs/HANDOVER.md
+- T3 onboarding: https://go.terminal3.io/adk-community
+- T3 quickstart: https://docs.terminal3.io/developers/adk/get-started/quickstart
