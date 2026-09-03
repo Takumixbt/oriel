@@ -1,0 +1,24 @@
+/// Oriel's least-privilege T3N contract surface.
+package z:oriel@0.2.0;
+
+world oriel {
+    import host:tenant/tenant-context@1.0.0;
+    import host:interfaces/logging@2.1.0;
+    import host:interfaces/kv-store@2.1.0;
+    import host:interfaces/http@2.1.0;
+
+    export contracts;
+}
+
+interface contracts {
+    record generic-input {
+        input:        option<list<u8>>,
+        user-profile: option<list<u8>>,
+        context:      option<list<u8>>,
+    }
+
+    run-qualification: func(req: generic-input) -> result<list<u8>, string>;
+    get-qualification: func(req: generic-input) -> result<list<u8>, string>;
+    protected-support-action: func(req: generic-input) -> result<list<u8>, string>;
+    revoke-qualification: func(req: generic-input) -> result<list<u8>, string>;
+}

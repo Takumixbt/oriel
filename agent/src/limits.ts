@@ -1,0 +1,12 @@
+export const MAX_POLICY_ID_BYTES = 128;
+export const MAX_POLICY_VERSION_BYTES = 64;
+export const MAX_ATTACK_PROMPT_BYTES = 8 * 1024;
+export const MAX_SCOPE_ENTRY_BYTES = 256;
+export const MAX_SCOPE_ENTRIES = 64;
+export const MAX_TARGET_URL_BYTES = 2 * 1024;
+export const MAX_ORDER_ID_BYTES = 256;
+export const MAX_CAPABILITY_BYTES = MAX_SCOPE_ENTRY_BYTES;
+export const MAX_TARGET_TEXT_BYTES = 8 * 1024;
+export const MAX_TARGET_ACTIONS = 64;
+export const MAX_ATTESTATION_BYTES = 256;
+export const MAX_RESPONSE_BYTES = 256 * 1024;

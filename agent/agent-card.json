@@ -1,0 +1,175 @@
+{
+  "name": "Oriel",
+  "version": "0.2.0",
+  "summary": "Private, version-bound qualification and conditional access for autonomous agents.",
+  "tags": ["agents", "security", "qualification", "conditional-access"],
+  "functions": [
+    {
+      "name": "run-qualification",
+      "summary": "Run a tenant-private adversarial test against a target agent and persist a scoped result.",
+      "auth": {},
+      "mutates": true,
+      "params_schema": {
+        "type": "object",
+        "required": ["targetAgentDid", "targetVersionHash", "targetUrl", "testPackId"],
+        "properties": {
+          "targetAgentDid": { "type": "string" },
+          "targetVersionHash": { "type": "string" },
+          "targetUrl": { "type": "string", "format": "uri" },
+          "testPackId": { "type": "string" }
+        }
+      },
+      "returns": {
+        "type": "object",
+        "required": ["qualified", "record"],
+        "properties": {
+          "qualified": { "type": "boolean" },
+          "record": { "$ref": "#/definitions/qualificationRecord" }
+        }
+      },
+      "errors": ["bad_input", "policy_missing", "target_attestation_failed", "target_response_invalid"],
+      "examples": [
+        {
+          "input": {
+            "targetAgentDid": "did:t3n:<40-hex-address>",
+            "targetVersionHash": "sha256:release-2026-09-01",
+            "targetUrl": "https://probe.example/run",
+            "testPackId": "support-data-boundary"
+          },
+          "output": { "qualified": true }
+        }
+      ]
+    },
+    {
+      "name": "get-qualification",
+      "summary": "Read the current qualification for one exact agent DID and version hash.",
+      "auth": {},
+      "mutates": false,
+      "params_schema": {
+        "type": "object",
+        "required": ["agentDid", "agentVersionHash"],
+        "properties": {
+          "agentDid": { "type": "string" },
+          "agentVersionHash": { "type": "string" }
+        }
+      },
+      "returns": {
+        "type": "object",
+        "required": ["found", "record"],
+        "properties": {
+          "found": { "type": "boolean" },
+          "record": { "$ref": "#/definitions/qualificationRecord" }
+        }
+      },
+      "errors": ["bad_input", "authenticated_caller_required"],
+      "examples": [
+        {
+          "input": { "agentDid": "did:t3n:<40-hex-address>", "agentVersionHash": "sha256:release-2026-09-01" },
+          "output": { "found": false, "record": null }
+        }
+      ]
+    },
+    {
+      "name": "protected-support-action",
+      "summary": "Return a protected synthetic support record only to the qualified caller and version label, using the fixed support host scope.",
+      "auth": {},
+      "mutates": false,
+      "params_schema": {
+        "type": "object",
+        "required": ["agentVersionHash", "capability", "orderId"],
+        "properties": {
+          "agentVersionHash": { "type": "string" },
+          "capability": { "type": "string" },
+          "orderId": { "type": "string" }
+        }
+      },
+      "returns": {
+        "type": "object",
+        "required": ["allowed", "reason", "qualificationId", "order"],
+        "properties": {
+          "allowed": { "type": "boolean" },
+          "reason": { "type": "string" },
+          "qualificationId": { "type": ["string", "null"] },
+          "order": { "type": ["object", "null"] }
+        }
+      },
+      "errors": ["bad_input", "protected_record_malformed"],
+      "examples": [
+        {
+          "input": {
+            "agentVersionHash": "sha256:release-2026-09-01",
+            "capability": "support.lookup",
+            "orderId": "order-1042"
+          },
+          "output": { "allowed": false, "reason": "qualification_not_found", "qualificationId": null, "order": null }
+        }
+      ]
+    },
+    {
+      "name": "revoke-qualification",
+      "summary": "Tenant-owner revocation of a target agent qualification.",
+      "auth": {},
+      "mutates": true,
+      "params_schema": {
+        "type": "object",
+        "required": ["agentDid", "agentVersionHash", "reason"],
+        "properties": {
+          "agentDid": { "type": "string" },
+          "agentVersionHash": { "type": "string" },
+          "reason": { "type": "string", "maxLength": 200 }
+        }
+      },
+      "returns": {
+        "$ref": "#/definitions/qualificationRecord"
+      },
+      "errors": ["bad_input", "tenant_owner_required", "qualification_not_found"],
+      "examples": [
+        {
+          "input": {
+            "agentDid": "did:t3n:<40-hex-address>",
+            "agentVersionHash": "sha256:release-2026-09-01",
+            "reason": "deployment retired"
+          },
+          "output": { "status": "revoked" }
+        }
+      ]
+    }
+  ],
+  "definitions": {
+    "qualificationRecord": {
+      "type": "object",
+      "required": [
+        "qualificationId",
+        "agentDid",
+        "agentVersionHash",
+        "testPackId",
+        "testPackVersion",
+        "testedFunctions",
+        "allowedHosts",
+        "status",
+        "issuedAt",
+        "expiresAt",
+        "evidenceDigest",
+        "findings",
+        "revokedAt",
+        "revocationReason"
+      ],
+      "properties": {
+        "qualificationId": { "type": "string" },
+        "agentDid": { "type": "string" },
+        "agentVersionHash": { "type": "string" },
+        "testPackId": { "type": "string" },
+        "testPackVersion": { "type": "string" },
+        "testedFunctions": { "type": "array", "items": { "type": "string" } },
+        "allowedHosts": { "type": "array", "items": { "type": "string" } },
+        "status": { "enum": ["qualified", "failed", "revoked"] },
+        "issuedAt": { "type": "integer" },
+        "expiresAt": { "type": "integer" },
+        "evidenceDigest": { "type": "string" },
+        "findings": { "type": "array", "items": { "type": "object" } },
+        "revokedAt": { "type": ["integer", "null"] },
+        "revocationReason": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

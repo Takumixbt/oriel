@@ -1,0 +1,5 @@
+[alias]
+wasm-build = "build --manifest-path contract/Cargo.toml --target wasm32-wasip2 --release"
+
+# Deliberately no [build] target. Keeping native as the default lets
+# `cargo test --manifest-path contract/Cargo.toml` execute on the host.
