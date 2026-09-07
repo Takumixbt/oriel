@@ -39,6 +39,3 @@ The tenant owner controls deployment and policy. T3N supplies authenticated call
 5. Revocation is owner-only and irreversible for that stored result; re-entry requires a new qualification run.
 6. A contract redeploy must update every private map ACL to the new contract ID.
 
-## Not claimed
-
-Oriel is not formal verification, universal prompt-injection immunity, cryptographic remote attestation of the target build, or a substitute for enterprise key management. It is an enforceable qualification primitive whose guarantees are intentionally narrow and inspectable.
