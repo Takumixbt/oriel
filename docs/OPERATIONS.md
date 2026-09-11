@@ -1,6 +1,6 @@
 # Operations
 
-This page is the short deployment checklist. For the full 30-day handover, rollback, acceptance, and key-rotation procedure, see [HANDOVER.md](HANDOVER.md).
+This page is the deployment, rollback, and key-rotation checklist for running Oriel.
 
 ## Prerequisites
 
@@ -42,7 +42,7 @@ Add a new pack version instead of mutating an existing one. Revoke qualification
 
 Track qualification status, denial reasons, expiry rate, target HTTP failures, and contract logs. Never log probe payloads, response bodies, API keys, or canaries.
 
-## Reviewer and operator evidence
+## Evidence and boundaries
 
 - [Verification snapshot](VERIFICATION.md) — local commands, expected results, and the canonical release hash.
 - [Probe protocol](PROBE_PROTOCOL.md) — request/response and target/observer attestation boundaries.

@@ -105,11 +105,11 @@ The local demo uses a combined signed fixture. For deployment, run `targets/src/
 
 See [operations](docs/OPERATIONS.md), [architecture](docs/ARCHITECTURE.md), and [threat model](docs/THREAT_MODEL.md).
 
-## Reviewer path
+## Inspect the implementation
 
 If you have two minutes, run `npm run demo` and inspect the six lifecycle stages in the JSON output: the vulnerable build fails, the hardened build qualifies, the protected record is admitted, version drift is denied, revocation is applied, and the revoked build is denied without data.
 
-For implementation evidence, start with [the challenge submission](docs/SUBMISSION.md), then read the [probe protocol](docs/PROBE_PROTOCOL.md), [test methodology](docs/TEST_METHODOLOGY.md), [threat model](docs/THREAT_MODEL.md), and [handover runbook](docs/HANDOVER.md). The repo also records [reproducible SDK/platform findings](docs/BUGS.md), including the SDK upgrade to the current `@terminal3/t3n-sdk@5.2.0` baseline.
+For implementation details, start with [the architecture](docs/ARCHITECTURE.md), then read the [probe protocol](docs/PROBE_PROTOCOL.md), [test methodology](docs/TEST_METHODOLOGY.md), [threat model](docs/THREAT_MODEL.md), and [operations checklist](docs/OPERATIONS.md). The repo also records [reproducible SDK/platform findings](docs/BUGS.md), including the upgrade to the current `@terminal3/t3n-sdk@5.2.0` baseline.
 
 ## Current verification snapshot
 
