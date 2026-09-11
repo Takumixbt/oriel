@@ -19,12 +19,12 @@
     "live:qualify": "tsx scripts/qualify.ts",
     "live:protected": "tsx scripts/protected-call.ts",
     "live:revoke": "tsx scripts/revoke.ts",
-    "check": "npm run typecheck && npm test && npm run contract:test && npm run contract:build"
+    "check": "npm run typecheck && npm test && npm run contract:test && npm run contract:build && npm run contract:hash"
   },
   "dependencies": {
     "@noble/curves": "2.4.0",
     "@noble/hashes": "2.4.0",
-    "@terminal3/t3n-sdk": "4.36.0"
+    "@terminal3/t3n-sdk": "5.2.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

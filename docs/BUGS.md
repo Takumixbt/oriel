@@ -1,24 +1,24 @@
 # Bugs and integration findings
 
-These are reproducible findings from building Oriel against `@terminal3/t3n-sdk@4.36.0` on Node 22 (snapshot: 31 August 2026). They are reported separately from Oriel's own known limitations. Each finding includes a reproduction path, observed impact, and a maintainer action; no issue is presented as a confirmed server vulnerability where only the client-side evidence is available.
+These are reproducible findings from building Oriel against Terminal 3's SDK on Node 22. The first snapshot used `@terminal3/t3n-sdk@4.36.0` on 31 August 2026; the current repo baseline is `@terminal3/t3n-sdk@5.2.0` (the version in the current Terminal 3 quickstart), verified on 11 September 2026. Findings are reported separately from Oriel's own limitations, with resolution status called out where the SDK changed. No issue is presented as a confirmed server vulnerability where only client-side evidence is available.
 
-## 1. SDK dependency tree contains vulnerable archive extraction
+## 1. Historical archive-extraction advisory (resolved by SDK upgrade)
 
-**Severity:** dependency-chain critical (not reached by Oriel runtime flows)
+**Severity:** dependency-chain critical in the historical `4.36.0` tree; resolved in the current lockfile
 
 **Reproduce:**
 
 ```bash
-npm ci
+npm ci --include=dev
 npm audit --json
 npm ls @terminal3/t3n-sdk @bytecodealliance/jco @bytecodealliance/componentize-js @bytecodealliance/weval decompress --all
 ```
 
-**Observed:** `npm audit` exits with code 1 and reports one critical plus three moderate advisories. The resolved path is `@terminal3/t3n-sdk@4.36.0` → `@bytecodealliance/jco` → `@bytecodealliance/componentize-js` → `@bytecodealliance/weval` → `decompress@4.2.1`.
+**Observed in the historical snapshot:** `npm audit` exited with code 1 and reported one critical plus three moderate advisories. The resolved path was `@terminal3/t3n-sdk@4.36.0` → `@bytecodealliance/jco` → `@bytecodealliance/componentize-js` → `@bytecodealliance/weval` → `decompress@4.2.1`.
 
 The advisories include archive path traversal/link creation (for example GHSA-mp2f-45pm-3cg9). `npm audit fix --dry-run` does not remove the findings.
 
-**Impact and boundary:** Oriel does not extract untrusted archives and does not invoke this componentization path in its qualification or protected-call runtime flows. The issue is still inherited by developers who install the SDK and build WASM locally. Recommended sponsor action: update/pin the Bytecode Alliance chain to a non-vulnerable extraction implementation, publish a patched SDK, and add dependency audit policy to SDK CI. Until then, keep componentization tooling out of production images and review archive inputs before local builds.
+**Current status:** upgrading Oriel to `@terminal3/t3n-sdk@5.2.0` removed the vulnerable chain; `npm ci --include=dev` succeeds and `npm audit` reports zero vulnerabilities for the checked-in lockfile. Oriel still does not extract untrusted archives, and build/componentization tooling remains separate from the target runtime.
 
 ## 2. Map visibility type is too broad to catch casing errors
 
@@ -38,9 +38,9 @@ The advisories include archive path traversal/link creation (for example GHSA-mp
 
 **Reproduce:** remove `node_modules` and run `npm ci` on a clean Windows Node 22 environment, then record the install duration and run `npm ls --all --depth=0`.
 
-**Observed:** this build resolved 268 total dependencies and fetched platform-specific compiler/parser/componentization packages; the clean install took approximately seven minutes on the available connection. Many optional packages are irrelevant to a runtime-only client.
+**Observed in the historical snapshot:** the build resolved 268 total dependencies and fetched platform-specific compiler/parser/componentization packages; the clean install took approximately seven minutes on the available connection. After moving to SDK `5.2.0`, the current lockfile installs 23 package nodes in this environment and no longer carries the old componentization dependency tree.
 
-**Impact and action:** slow onboarding and CI feedback make post-deployment maintenance harder. Separate runtime client APIs from WASM authoring/componentization tooling, or expose a lightweight runtime package. Oriel mitigates the impact by pinning the lockfile and keeping the target runtime separate from the contract build.
+**Impact and action:** the upgrade materially improves onboarding and CI time. The remaining platform-level opportunity is still to publish a clearly separated runtime client and authoring/componentization package; Oriel mitigates the risk by pinning the lockfile and keeping the target runtime separate from the contract build.
 
 ## 4. Contract-ID ACL rotation remains a sharp edge
 

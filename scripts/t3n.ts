@@ -5,7 +5,7 @@ import {
   eth_get_address,
   fetchTrustedManifest,
   getNodeUrl,
-  getScriptVersion,
+  getContractVersion,
   loadWasmComponent,
   metamask_sign,
   setEnvironment,
@@ -134,7 +134,7 @@ export async function executeOriel<T>(
   input: Record<string, unknown>,
 ): Promise<T> {
   const name = scriptName(tenantDid);
-  const version = await getScriptVersion(getNodeUrl(), name);
+  const version = await getContractVersion(getNodeUrl(), name);
   return t3n.executeAndDecode<T>({
     script_name: name,
     script_version: version,

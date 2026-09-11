@@ -1,6 +1,8 @@
 # Oriel
 
-**Qualification infrastructure for autonomous agents on T3N.**
+[![CI](https://github.com/Takumixbt/oriel/actions/workflows/ci.yml/badge.svg)](https://github.com/Takumixbt/oriel/actions/workflows/ci.yml)
+
+**Private qualification and conditional access for autonomous agents on T3N.**
 
 Oriel lets an enterprise require an agent to pass a private, adversarial test before that exact agent identity and target-attested version label can access a protected capability. A passing result is short-lived, scope-bound, revocable, and enforced at the point of access—not filed away as a report.
 
@@ -57,6 +59,8 @@ npm run contract:build
 npm run contract:hash
 ```
 
+For the complete offline verification in one command, run `npm run check`. It performs strict TypeScript checks, the 11-test integration/security suite, 14 Rust unit tests plus one doc test, a release WASI build, and the release hash.
+
 `npm run demo` starts an ephemeral target and executes the whole lifecycle:
 
 - vulnerable version leaks the canary and attempts an unauthorized refund/exfiltration → **failed**;
@@ -100,5 +104,19 @@ npm run live:protected
 The local demo uses a combined signed fixture. For deployment, run `targets/src/server.ts` in `gateway` mode in front of a separately deployed `agent` mode target; the target holds only its signing key and the gateway holds only the observer receipt key. `Dockerfile` and `render.yaml` describe the gateway deployment shape.
 
 See [operations](docs/OPERATIONS.md), [architecture](docs/ARCHITECTURE.md), and [threat model](docs/THREAT_MODEL.md).
+
+## Reviewer path
+
+If you have two minutes, run `npm run demo` and inspect the six lifecycle stages in the JSON output: the vulnerable build fails, the hardened build qualifies, the protected record is admitted, version drift is denied, revocation is applied, and the revoked build is denied without data.
+
+For implementation evidence, start with [the challenge submission](docs/SUBMISSION.md), then read the [probe protocol](docs/PROBE_PROTOCOL.md), [test methodology](docs/TEST_METHODOLOGY.md), [threat model](docs/THREAT_MODEL.md), and [handover runbook](docs/HANDOVER.md). The repo also records [reproducible SDK/platform findings](docs/BUGS.md), including the SDK upgrade to the current `@terminal3/t3n-sdk@5.2.0` baseline.
+
+## Current verification snapshot
+
+- TypeScript: strict typecheck passing; 11 tests passing.
+- Rust: 14 unit tests and 1 doc test passing.
+- Contract: `0.2.0`, `wasm32-wasip2` release build, SHA-256 `eb39d5fabf27474644e969ff5bc76c238768b2898454c9b49d587bfb4ab17a6b`.
+- Dependencies: `npm ci --include=dev` succeeds; `npm audit` reports zero vulnerabilities for the current lockfile.
+- Live deployment: scripts are ready, but a live `0.2.0` qualification transcript still requires funded identities and a public HTTPS gateway.
 
 MIT licensed.

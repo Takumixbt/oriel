@@ -1,4 +1,4 @@
-import { getNodeUrl, getScriptVersion } from "@terminal3/t3n-sdk";
+import { getContractVersion, getNodeUrl } from "@terminal3/t3n-sdk";
 import { connect, requiredEnv, safeError, scriptName } from "./t3n.js";
 
 async function main(): Promise<void> {
@@ -15,7 +15,7 @@ async function main(): Promise<void> {
   }
 
   const name = scriptName(tenantDid);
-  const version = await getScriptVersion(getNodeUrl(), name);
+  const version = await getContractVersion(getNodeUrl(), name);
   await owner.t3n.updateAgentAuth(certifier.did, {
     scriptName: name,
     versionReq: version,

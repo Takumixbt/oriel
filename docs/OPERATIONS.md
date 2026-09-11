@@ -1,5 +1,7 @@
 # Operations
 
+This page is the short deployment checklist. For the full 30-day handover, rollback, acceptance, and key-rotation procedure, see [HANDOVER.md](HANDOVER.md).
+
 ## Prerequisites
 
 - T3N tenant-owner, certifier, and target-agent keys (distinct DIDs)
@@ -15,7 +17,7 @@ Never commit keys or `.env`. Scripts auto-load the gitignored root `.env` and ne
 1. Deploy the target in `agent` mode with `ORIEL_TARGET_ATTESTATION_KEY` set to the target agent key; keep the vulnerable route disabled.
 2. Deploy a separate `gateway` instance with `ORIEL_UPSTREAM_TARGET_URL`, `ORIEL_TARGET_DID`, and `ORIEL_OBSERVER_ATTESTATION_KEY`. The gateway is the URL supplied to Oriel; it must not receive the target private key.
 3. Copy `.env.example` to `.env` and set `T3N_API_KEY`, `ORIEL_AGENT_KEY`, `TARGET_AGENT_KEY`, `ORIEL_TARGET_DID`, `T3N_ENV`, `ORIEL_TARGET_URL`, and `ORIEL_OBSERVER_ATTESTATION_KEY`.
-4. Run `npm ci && npm run check`.
+4. Run `npm ci --include=dev && npm run check`.
 5. Run `npm run live:preflight` before any network mutation.
 6. Run `npm run live:register` once; record tenant DID and contract ID.
 7. Set `ORIEL_TENANT_DID`, then `npm run live:preflight -- --live`.
@@ -39,3 +41,9 @@ Add a new pack version instead of mutating an existing one. Revoke qualification
 ## Monitoring
 
 Track qualification status, denial reasons, expiry rate, target HTTP failures, and contract logs. Never log probe payloads, response bodies, API keys, or canaries.
+
+## Reviewer and operator evidence
+
+- [Verification snapshot](VERIFICATION.md) — local commands, expected results, and the canonical release hash.
+- [Probe protocol](PROBE_PROTOCOL.md) — request/response and target/observer attestation boundaries.
+- [Threat model](THREAT_MODEL.md) — what the qualification does and does not prove.
